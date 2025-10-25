@@ -1,0 +1,7 @@
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-dotenv==1.0.0
+gitpython==3.1.40
+elasticsearch==8.11.0
+httpx==0.25.2
+PyGithub==2.1.1
