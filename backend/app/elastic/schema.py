@@ -45,12 +45,6 @@ COMMIT_INDEX_MAPPING = {
                     "ef_construction": 100  # Build-time search depth
                 }
             },
-            "message_expansion": {
-                "type": "text_expansion",  # ELSER sparse embeddings for explainable semantic search
-                "model_id": ".elser_model_2_linux-x86_64"  # Elastic Learned Sparse Encoder v2
-                # ELSER provides learned term expansions (e.g., "auth" → "authentication", "login", "security")
-                # Better than synonyms: context-aware, no manual curation, explainable results
-            },
 
             # Repository info
             "repo_url": {
@@ -109,13 +103,7 @@ COMMIT_INDEX_MAPPING = {
             }
         }
     },
-    "settings": {
-        "number_of_shards": 1,
-        "number_of_replicas": 0,  # Serverless handles replication
-        "index": {
-            "max_result_window": 10000  # Allow deep pagination for large repos
-        }
-    }
+    "settings": {}
 }
 
 
@@ -196,8 +184,5 @@ FILES_INDEX_MAPPING = {
             }
         }
     },
-    "settings": {
-        "number_of_shards": 1,
-        "number_of_replicas": 0
-    }
+    "settings": {}
 }
