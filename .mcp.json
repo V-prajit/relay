@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "bugrewind-backend": {
+      "command": "python",
+      "args": ["./backend/mcp_server.py"],
+      "description": "PM Copilot backend - Elasticsearch hybrid search, impact analysis, co-change detection"
+    },
+    "figma": {
+      "transport": "http",
+      "url": "https://mcp.figma.com/mcp",
+      "description": "Official Figma - Access designs with semantic details for accurate code generation"
+    },
+    "peekaboo": {
+      "command": "npx",
+      "args": ["-y", "@peekaboo/mcp"],
+      "description": "Screenshot + AI analysis - Capture UI and get instant visual feedback"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./frontend", "./backend"],
+      "description": "File access - Read/write code across entire project"
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git", "--repository", "."],
+      "description": "Git operations - Commit, diff, and track changes"
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub - Create PRs, issues, manage repository"
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+      "description": "Browser automation - Test responsive design, capture rendered pages"
+    }
+  }
+}
