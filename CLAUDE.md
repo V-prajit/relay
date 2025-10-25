@@ -2,6 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ First Time Setup - Important!
+
+**Before editing this file**, run this command to keep your local changes private:
+```bash
+git update-index --assume-unchanged CLAUDE.md
+```
+
+This allows you to customize CLAUDE.md for your needs without affecting the shared version. Your edits will stay local and won't be committed to the repository.
+
+To later update the shared version (if needed):
+```bash
+git update-index --no-assume-unchanged CLAUDE.md
+```
+
 ## Project Overview
 
 **youareabsolutelyright** (also known as "BugRewind") is a full-stack application that performs "git archaeology" to trace bug origins through commit history analysis. The system combines AI-powered code analysis with OCR capabilities to identify when and where bugs were introduced in a codebase.
