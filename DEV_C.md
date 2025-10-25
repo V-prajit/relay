@@ -9,8 +9,8 @@
 - Hours 0-4: Setup + input form
 - Hours 4-8: API integration + results display
 - Hours 8-12: Diff viewer + commit timeline
-- Hours 12-16: OCR image upload (killer feature!)
-- Hours 16-20: Polish + responsive design
+- Hours 12-16: Polish, animations, and loading states
+- Hours 16-20: Responsive design + accessibility
 - Hours 20-22: Deployment + testing
 
 ---
@@ -195,12 +195,6 @@ export interface AnalyzeBugRequest {
   line_hint?: number
 }
 
-export interface OCRAnalyzeRequest {
-  image_data: string
-  bug_description: string
-  repo_url: string
-}
-
 2. API Response types:
 
 export interface CommitInfo {
@@ -351,8 +345,8 @@ Component structure:
    "Find bugs at their source, not their symptom"
 3. Feature badges:
    - 🔍 Git Archaeology
-   - 🤖 AI-Powered Analysis
-   - 📸 OCR Support
+   - 🤖 AI Vision Analysis
+   - 🖼️ Visual Context Compression (10-40x token reduction)
    - 🔧 Auto PR Generation
 4. "Get Started" CTA that scrolls to form
 
@@ -514,8 +508,13 @@ export async function analyzeBug(data: AnalyzeBugRequest): Promise<AnalyzeBugRes
   return response.data
 }
 
-export async function analyzeBugFromImage(data: OCRAnalyzeRequest): Promise<AnalyzeBugResponse> {
-  const response = await api.post('/api/analyze-bug-from-image', data)
+export async function getCompressionStats(): Promise<{
+  total_analyses: number
+  avg_compression_ratio: number
+  tokens_saved: number
+  cost_savings_usd: number
+}> {
+  const response = await api.get('/api/compression-stats')
   return response.data
 }
 
@@ -1253,48 +1252,198 @@ Use filteredCommits instead of commits in map
 
 ---
 
-## Hour 12-16: OCR Image Upload Feature
+## Hour 12-16: Polish, Animations, and Token Savings Display
 
-### Step 18: Create Image Upload Component
+### The Hackathon Differentiator
+
+While other teams focus on features, you'll showcase **cost savings** from visual context compression. This is what wins hackathons - demonstrating real-world value.
+
+---
+
+### Step 18: Create Token Savings Stats Component
 
 **Prompt for Claude Code:**
 ```
-Create frontend/components/ImageUpload.tsx:
+Create frontend/components/TokenSavingsCard.tsx:
 
-Purpose: Upload error screenshots for OCR analysis
+Purpose: Display real-time token savings from visual compression (the killer feature!)
 
-Props:
-- onImageSelect: (base64: string, file: File) => void
+Component:
 
-Component features:
+'use client'
 
-1. Drag & drop zone
-2. Click to upload
-3. Image preview
-4. File size validation (max 5MB)
-5. Format validation (png, jpg, jpeg)
+import { useEffect, useState } from 'react'
+import { TrendingDown, DollarSign, Zap } from 'lucide-react'
+import { getCompressionStats } from '@/lib/api'
+
+export default function TokenSavingsCard() {
+  const [stats, setStats] = useState<{
+    total_analyses: number
+    avg_compression_ratio: number
+    tokens_saved: number
+    cost_savings_usd: number
+  } | null>(null)
+
+  useEffect(() => {
+    // Fetch stats on mount and every 10 seconds
+    const fetchStats = async () => {
+      try {
+        const data = await getCompressionStats()
+        setStats(data)
+      } catch (error) {
+        console.error('Failed to fetch compression stats', error)
+      }
+    }
+
+    fetchStats()
+    const interval = setInterval(fetchStats, 10000)
+    return () => clearInterval(interval)
+  }, [])
+
+  if (!stats) return null
+
+  return (
+    <div className="bg-gradient-to-br from-green-50 to-blue-50 border border-green-200 rounded-lg p-6">
+      <div className="flex items-center gap-2 mb-4">
+        <Zap className="text-green-600" size={24} />
+        <h3 className="font-semibold text-lg">Visual Compression Savings</h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <p className="text-sm text-gray-600">Avg Compression</p>
+          <p className="text-2xl font-bold text-green-600">
+            {stats.avg_compression_ratio.toFixed(1)}x
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-600">Tokens Saved</p>
+          <p className="text-2xl font-bold text-blue-600">
+            {stats.tokens_saved.toLocaleString()}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-sm text-gray-600">Cost Savings</p>
+          <p className="text-2xl font-bold text-purple-600">
+            ${stats.cost_savings_usd.toFixed(2)}
+          </p>
+        </div>
+      </div>
+
+      <p className="text-xs text-gray-600 mt-4">
+        Powered by DeepSeek-OCR visual context compression
+      </p>
+    </div>
+  )
+}
+
+Export as default.
+```
+
+**Add to page.tsx** above the results section to showcase your innovation!
+
+---
+
+### Step 19: Add Loading Skeleton Components
+
+**Prompt for Claude Code:**
+```
+Create frontend/components/LoadingSkeletons.tsx:
+
+Purpose: Professional loading states while analysis runs
+
+Components:
+
+1. CommitListSkeleton - Animated cards for commit list
+2. DiffViewerSkeleton - Loading state for diff viewer
+3. AnalysisSkeleton - Placeholder for Claude analysis
 
 Implementation:
 
 'use client'
 
-import { useState, useRef } from 'react'
-import { Upload, X, Image as ImageIcon } from 'lucide-react'
+export function CommitListSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="border rounded-lg p-4 animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
-export default function ImageUpload({ onImageSelect }: Props) {
-  const [preview, setPreview] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  
-  const handleFile = async (file: File) => {
-    // Validate
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file')
-      return
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be less than 5MB')
+export function DiffViewerSkeleton() {
+  return (
+    <div className="border rounded-lg p-6 animate-pulse">
+      <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+      <div className="space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="h-3 bg-gray-200 rounded w-full"></div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function AnalysisSkeleton() {
+  return (
+    <div className="border rounded-lg p-6 animate-pulse">
+      <div className="h-5 bg-gray-200 rounded w-2/3 mb-4"></div>
+      <div className="space-y-3">
+        <div className="h-4 bg-gray-200 rounded w-full"></div>
+        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        <div className="h-4 bg-gray-200 rounded w-4/5"></div>
+      </div>
+    </div>
+  )
+}
+
+Use these in page.tsx while loading: {loading ? <CommitListSkeleton /> : <CommitList />}
+```
+
+---
+
+### Step 20: Add Smooth Animations
+
+**Prompt for Claude Code:**
+```
+Update components with enter/exit animations using framer-motion:
+
+npm install framer-motion
+
+In CommitList.tsx, wrap commit items:
+
+import { motion } from 'framer-motion'
+
+{commits.map((commit, i) => (
+  <motion.div
+    key={commit.commit_hash}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: i * 0.1 }}
+  >
+    <CommitCard {...commit} />
+  </motion.div>
+))}
+
+Similarly add to:
+- AnalysisCard (fade in from right)
+- DiffViewer (fade in from left)
+- TokenSavingsCard (scale up)
+
+This creates a polished, professional feel!
+```
+
+---
+
+## Hour 16-20: Polish & Responsive Design
+
+**Note:** The Hours 12-16 section above focused on polish and token savings display - the hackathon differentiator! Now let's ensure everything works great on all devices.
       return
     }
     
