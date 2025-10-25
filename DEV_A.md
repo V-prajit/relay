@@ -1,12 +1,12 @@
 DEV_A_GUIDE.md
-markdown# DEV A: Git + Backend Core + OCR Integration
+markdown# DEV A: Git + Backend Core + Visual Context Compression
 
-**Your Mission:** Build the FastAPI backend with git archaeology, Claude analysis, and DeepSeek OCR for document scanning
+**Your Mission:** Build the FastAPI backend with git archaeology, Claude Vision API analysis, and DeepSeek-OCR visual context compression (10-40x token reduction)
 
 **Time Budget:** 22 hours total
 - Hours 0-5: Setup + Git utilities
-- Hours 5-10: Claude integration + analysis
-- Hours 10-15: DeepSeek OCR integration
+- Hours 5-10: Claude Vision API integration + analysis
+- Hours 10-15: Image rendering service for diff compression
 - Hours 15-18: GitHub PR creation
 - Hours 18-22: Testing + polish
 
@@ -109,10 +109,6 @@ Create app/models/requests.py with Pydantic models:
    - patch_content: str
    - title: str
    - description: str
-
-3. OCRAnalyzeRequest:
-   - image_data: str  # base64 encoded
-   - bug_description: str
 
 Use Field() for validation:
 - repo_url must start with "https://github.com"
@@ -639,176 +635,294 @@ curl -X POST http://localhost:8000/api/analyze-bug \
 
 ---
 
-## Hour 10-15: DeepSeek OCR Integration
+## Hour 10-15: Visual Context Compression (Image Rendering Service)
 
-### Step 13: DeepSeek OCR Service
+### The Problem We're Solving
+
+Large git diffs = thousands of text tokens = expensive Claude API calls
+**Solution:** Render diffs as images, send to Claude Vision API (10-40x token reduction)
+
+Example:
+- Traditional: 5000-line diff = 4000 text tokens → $0.12 input cost
+- Our approach: Same diff rendered as 640x640 image = 100 vision tokens → $0.003 input cost
+- **Savings: 97% reduction in input tokens!**
+
+---
+
+### Step 13: Image Renderer Service
 
 **Prompt for Claude Code:**
 ````
-Create app/services/deepseek_service.py:
+Create app/services/image_renderer.py:
 
-Purpose: Extract text from images (screenshots of code/logs) and analyze
+Purpose: Render text (git diffs) as high-quality images for vision model processing
 
 1. Import:
-   - httpx
-   - base64
-   - PIL (Image)
-   - io
+   - subprocess
+   - tempfile
    - os
+   - pathlib
+   - base64
+   - typing
+   - PIL (Image)
 
-2. Class: DeepSeekOCRService
+2. Class: ImageRendererService
 
    __init__(self):
-   - Store API key from env
-   - Base URL for DeepSeek OCR API
-   - httpx.AsyncClient
+   - Set up temp directory for rendering
+   - Verify LaTeX or HTML rendering tools available
+   - Initialize singleton pattern
 
-3. Method: extract_text_from_image(
+3. Method: render_diff_to_image(
        self,
-       image_data: str  # base64 encoded
+       diff_text: str,
+       target_resolution: int = 640  # Options: 512, 640, 1024, 1280
    ) -> str:
-   
-   Purpose: Extract text from image using DeepSeek OCR
-   
+
+   Purpose: Convert git diff text to PNG image
+
    Implementation:
-   - Decode base64 to bytes
-   - Validate it's an image (use PIL)
-   - Send to DeepSeek OCR API:
-     headers = {
-       "Authorization": f"Bearer {self.api_key}",
-       "Content-Type": "application/json"
-     }
-     
-     body = {
-       "image": image_data,
-       "language": "en",
-       "features": ["text_detection", "code_recognition"]
-     }
-   
-   - Parse response and extract text
-   - Return plain text string
-   
+
+   A. Choose rendering strategy:
+      - For now: Use HTML + WeasyPrint (easier setup)
+      - Future: LaTeX for better quality
+
+   B. Create HTML template:
+      '''
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 10pt;
+            margin: 10px;
+            line-height: 1.2;
+            background: white;
+          }
+          .diff { white-space: pre; }
+          .added { background: #e6ffed; color: #22863a; }
+          .removed { background: #ffebe9; color: #cb2431; }
+        </style>
+      </head>
+      <body>
+        <div class="diff">{formatted_diff}</div>
+      </body>
+      </html>
+      '''
+
+   C. Format diff with syntax highlighting:
+      - Lines starting with '+' → .added class
+      - Lines starting with '-' → .removed class
+      - Escape HTML entities
+
+   D. Render to PNG:
+      - Use WeasyPrint: HTML → PDF → PNG
+      - Target resolution: {target_resolution}x{target_resolution}
+      - DPI: 150 for clarity
+
+   E. Optimize image:
+      - Crop whitespace
+      - Ensure readability
+      - Convert to base64 for API
+
+   F. Return: base64 encoded PNG string
+
    Error handling:
-   - Invalid image format
-   - API errors
-   - Empty results
+   - Diff too large (chunk it)
+   - Rendering failures
+   - Invalid formats
 
-4. Method: analyze_error_screenshot(
+4. Method: estimate_vision_tokens(
        self,
-       image_data: str,
-       bug_description: str
-   ) -> Dict[str, Any]:
-   
-   Purpose: Extract error from screenshot and analyze with Claude
-   
-   Implementation:
-   - Extract text from image
-   - Identify error messages/stack traces
-   - Send to Claude with prompt:
-     '''
-     Error screenshot text extracted:
-     {extracted_text}
-     
-     User bug description:
-     {bug_description}
-     
-     Identify:
-     1. The main error message
-     2. File and line number if visible
-     3. Likely cause based on stack trace
-     4. Suggested file/line to investigate
-     
-     Return JSON:
-     {
-       "error_message": "...",
-       "file_path": "...",
-       "line_hint": 123,
-       "suggested_search": "keywords to search for"
-     }
-     '''
-   
-   - Return parsed analysis
-   
-   This gives us file_path and line_hint automatically!
+       resolution: int
+   ) -> int:
 
-5. Add singleton pattern like ClaudeService
+   Purpose: Estimate vision tokens from resolution
+
+   Mapping (from DeepSeek-OCR paper):
+   - 512x512 → 64 tokens
+   - 640x640 → 100 tokens
+   - 1024x1024 → 256 tokens
+   - 1280x1280 → 400 tokens
+
+   Return token estimate
+
+5. Method: calculate_compression_ratio(
+       self,
+       original_text: str,
+       vision_tokens: int
+   ) -> float:
+
+   Purpose: Calculate token savings
+
+   Implementation:
+   - Estimate original text tokens: len(text) / 4
+   - Compression ratio = original_tokens / vision_tokens
+   - Return ratio (e.g., 40.0 for 40x compression)
+
+6. Add singleton pattern: get_instance()
 ````
+
+**Save to:** `app/services/image_renderer.py`
 
 ---
 
-### Step 14: OCR Analyze Endpoint
+### Step 14: Update Claude Service for Vision API
 
 **Prompt for Claude Code:**
 ````
-In app/routes/analyze.py, add POST endpoint:
+Update app/services/claude_service.py to support vision:
 
-@router.post("/analyze-bug-from-image")
-async def analyze_bug_from_image(request: OCRAnalyzeRequest):
-    """
-    Analyze a bug from a screenshot of an error.
-    
-    Process:
-    1. Extract text from image using DeepSeek OCR
-    2. Parse error message and stack trace
-    3. Identify file and line number
-    4. Automatically call analyze_bug with extracted info
-    """
-    
-    Implementation:
-    
-    1. Call DeepSeekOCRService:
-       ocr = DeepSeekOCRService.get_instance()
-       analysis = await ocr.analyze_error_screenshot(
-           request.image_data,
-           request.bug_description
-       )
-    
-    2. If we got file_path and line_hint, automatically analyze:
-       if analysis.get("file_path"):
-           # Call our existing analyze_bug logic
-           bug_request = AnalyzeBugRequest(
-               repo_url=request.repo_url,  # User must still provide
-               bug_description=request.bug_description,
-               file_path=analysis["file_path"],
-               line_hint=analysis.get("line_hint")
-           )
-           return await analyze_bug(bug_request)
-    
-    3. Otherwise return the OCR analysis for user to refine:
-       return {
-           "ocr_result": analysis,
-           "message": "Please provide file_path manually"
+Add new method: analyze_commit_with_vision(
+    self,
+    commit_hash: str,
+    commit_message: str,
+    diff_image_base64: str,  # NEW: image instead of text
+    bug_description: str,
+    file_path: str,
+    compression_ratio: float  # For logging/metrics
+) -> Dict[str, Any]:
+
+Purpose: Analyze commit using Claude Vision API with rendered diff image
+
+Implementation:
+
+1. Build vision-compatible prompt:
+   '''
+   You are analyzing a git commit that may have introduced a bug.
+
+   Bug Report: {bug_description}
+
+   Commit Information:
+   - Hash: {commit_hash}
+   - Message: {commit_message}
+   - File: {file_path}
+
+   The git diff is shown in the attached image. Read the diff carefully
+   and provide:
+
+   1. Root cause: Why this change caused the bug
+   2. Developer intent: What the developer was trying to accomplish
+   3. Minimal patch: A unified diff to fix the issue
+   4. Confidence: Your confidence level (0.0-1.0)
+
+   Return ONLY a JSON object with these exact keys:
+   {
+     "root_cause": "explanation",
+     "developer_intent": "what they tried to do",
+     "minimal_patch": "unified diff format",
+     "confidence": 0.85
+   }
+
+   DO NOT include markdown code fences or any text outside the JSON.
+   '''
+
+2. Make vision API call:
+   headers = {
+     "x-api-key": self.api_key,
+     "anthropic-version": "2023-06-01",
+     "content-type": "application/json"
+   }
+
+   body = {
+     "model": "claude-sonnet-4-20250514",  # Vision-capable model
+     "max_tokens": 4096,
+     "messages": [
+       {
+         "role": "user",
+         "content": [
+           {
+             "type": "text",
+             "text": prompt
+           },
+           {
+             "type": "image",
+             "source": {
+               "type": "base64",
+               "media_type": "image/png",
+               "data": diff_image_base64
+             }
+           }
+         ]
        }
-    
-    This is the "magic" feature - upload error screenshot, get automatic analysis!
+     ]
+   }
+
+3. Parse response and add metrics:
+   result = {
+     **parsed_json,
+     "token_savings": {
+       "compression_ratio": compression_ratio,
+       "method": "visual_context_compression"
+     }
+   }
+
+4. Return result
+````
+
+**Test:**
+````python
+# In your existing analyze_bug endpoint, update to use vision:
+
+# Get diff
+diff = git_service.get_commit_diff(repo_path, commit["commit_hash"])
+
+# Check if diff is large enough to benefit from compression
+if len(diff) > 2000:  # Characters
+    # Render as image
+    renderer = ImageRendererService.get_instance()
+    diff_image = renderer.render_diff_to_image(diff, target_resolution=640)
+    vision_tokens = renderer.estimate_vision_tokens(640)
+    compression_ratio = renderer.calculate_compression_ratio(diff, vision_tokens)
+
+    # Use vision API
+    analysis = await claude.analyze_commit_with_vision(
+        commit["commit_hash"],
+        commit["commit_message"],
+        diff_image,
+        request.bug_description,
+        request.file_path,
+        compression_ratio
+    )
+else:
+    # Use traditional text-based analysis for small diffs
+    analysis = await claude.analyze_commit(...)
 ````
 
 ---
 
-### Step 15: Test OCR Integration
+### Step 15: Add Compression Metrics Endpoint
 
-**Create test script:**
-````python
-# test_ocr.py
-import base64
-import httpx
-
-# Take a screenshot of an error in your terminal/browser
-# Save as error.png
-
-with open("error.png", "rb") as f:
-    image_data = base64.b64encode(f.read()).decode()
-
-response = httpx.post(
-    "http://localhost:8000/api/analyze-bug-from-image",
-    json={
-        "image_data": image_data,
-        "bug_description": "Got this error and don't know where it's from"
-    }
-)
-
-print(response.json())
+**Prompt for Claude Code:**
 ````
+In app/routes/analyze.py, add GET endpoint:
+
+@router.get("/compression-stats")
+async def get_compression_stats():
+    """
+    Show token savings from visual compression.
+
+    Returns:
+    - Total diffs analyzed
+    - Average compression ratio
+    - Total tokens saved
+    - Cost savings estimate
+    """
+
+    # For now, return mock data
+    # In production, track this in a database
+
+    return {
+        "total_analyses": 0,
+        "avg_compression_ratio": 0,
+        "tokens_saved": 0,
+        "cost_savings_usd": 0.0,
+        "method": "visual_context_compression"
+    }
+````
+
+**This endpoint will be the hackathon differentiator in your demo!**
 
 ---
 
@@ -1068,10 +1182,10 @@ Using pytest:
    - Missing fields
    - Invalid repo
 
-4. Test OCR endpoint:
-   - Valid image
-   - Invalid base64
-   - Empty image
+4. Test image rendering service:
+   - Valid diff text
+   - Large diffs (chunking)
+   - Vision token estimation
 
 Run with: pytest tests/ -v
 ````
@@ -1139,8 +1253,8 @@ Python FastAPI backend for git archaeology and bug analysis.
 
 ## Features
 - 🔍 Git blame analysis
-- 🤖 Claude-powered root cause analysis
-- 📸 DeepSeek OCR for error screenshots
+- 🤖 Claude Vision API for root cause analysis
+- 🖼️ Visual context compression (10-40x token reduction)
 - 🔧 Automatic PR creation
 - ⚡ Caching for performance
 
@@ -1171,14 +1285,16 @@ Request:
 
 Response: [example]
 
-### POST /api/analyze-bug-from-image
-Analyze from error screenshot
+### GET /api/compression-stats
+Get token savings from visual compression
 
-Request:
+Response:
 ```json
 {
-  "image_data": "base64_encoded_image",
-  "bug_description": "Got this error"
+  "total_analyses": 42,
+  "avg_compression_ratio": 25.3,
+  "tokens_saved": 150000,
+  "cost_savings_usd": 4.50
 }
 ```
 
@@ -1214,8 +1330,9 @@ By hour 22, you should have:
 - [x] FastAPI server running
 - [x] Git operations (blame, log, diff)
 - [x] Safe repo cloning with cleanup
-- [x] Claude integration for analysis
-- [x] DeepSeek OCR for screenshots (UNIQUE FEATURE!)
+- [x] Claude Vision API integration
+- [x] Visual context compression (10-40x token reduction) - (UNIQUE FEATURE!)
+- [x] Image rendering service for diffs
 - [x] GitHub PR creation
 - [x] Caching for performance
 - [x] Comprehensive error handling
@@ -1224,6 +1341,6 @@ By hour 22, you should have:
 - [x] Tests
 - [x] README
 
-**Your unique contribution:** The OCR feature lets users upload error screenshots and automatically extract file/line info - this is a killer feature!
+**Your unique contribution:** The visual context compression feature renders git diffs as images and uses Claude's vision API to achieve 10-40x token reduction. While competitors hit API limits analyzing large refactors, your system analyzes entire frameworks for pennies. This is the hackathon differentiator!
 
 Test everything end-to-end before declaring done.
