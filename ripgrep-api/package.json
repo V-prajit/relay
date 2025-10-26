@@ -5,8 +5,8 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/index.js",
-    "start": "node src/index.js",
+    "dev": "cd .. && node --watch ripgrep-api/src/index.js",
+    "start": "cd .. && node ripgrep-api/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
