@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "Code Samples Mock Server",
+    "_postman_id": "mock-code-samples-001",
+    "description": "Mock server providing sample code snippets for testing PM Copilot flow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get Sample ProfileCard Component",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{MOCK_SERVER_URL}}/samples/ProfileCard",
+          "host": ["{{MOCK_SERVER_URL}}"],
+          "path": ["samples", "ProfileCard"]
+        }
+      },
+      "response": [
+        {
+          "name": "ProfileCard Component Example",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{MOCK_SERVER_URL}}/samples/ProfileCard",
+              "host": ["{{MOCK_SERVER_URL}}"],
+              "path": ["samples", "ProfileCard"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"component_name\": \"ProfileCard\",\n  \"file_path\": \"src/components/ProfileCard.tsx\",\n  \"code\": \"import React from 'react';\\n\\nexport interface ProfileCardProps {\\n  user: {\\n    id: string;\\n    name: string;\\n    avatar: string;\\n    bio?: string;\\n  };\\n}\\n\\nexport const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {\\n  return (\\n    <div className=\\\"profile-card\\\">\\n      <img \\n        src={user.avatar} \\n        alt={user.name}\\n        className=\\\"profile-avatar\\\"\\n      />\\n      <h3>{user.name}</h3>\\n      {user.bio && <p>{user.bio}</p>}\\n    </div>\\n  );\\n};\",\n  \"lines\": 20,\n  \"language\": \"typescript\",\n  \"test_snippet\": \"import { render, screen } from '@testing-library/react';\\nimport { ProfileCard } from './ProfileCard';\\n\\ntest('renders user name', () => {\\n  const user = { id: '1', name: 'Alice', avatar: 'avatar.jpg' };\\n  render(<ProfileCard user={user} />);\\n  expect(screen.getByText('Alice')).toBeInTheDocument();\\n});\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Sample Route Implementation",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{MOCK_SERVER_URL}}/samples/route/users",
+          "host": ["{{MOCK_SERVER_URL}}"],
+          "path": ["samples", "route", "users"]
+        }
+      },
+      "response": [
+        {
+          "name": "Users Route Example",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{MOCK_SERVER_URL}}/samples/route/users",
+              "host": ["{{MOCK_SERVER_URL}}"],
+              "path": ["samples", "route", "users"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"route\": \"/users\",\n  \"file_path\": \"src/pages/users.tsx\",\n  \"code\": \"import { useUsers } from '@/hooks/useUsers';\\nimport { ProfileCard } from '@/components/ProfileCard';\\nimport { Loading } from '@/components/Loading';\\n\\nexport default function UsersPage() {\\n  const { users, loading } = useUsers();\\n  \\n  if (loading) return <Loading />;\\n  \\n  return (\\n    <div className=\\\"users-page\\\">\\n      <h1>Users</h1>\\n      <div className=\\\"users-grid\\\">\\n        {users.map(user => (\\n          <ProfileCard key={user.id} user={user} />\\n        ))}\\n      </div>\\n    </div>\\n  );\\n}\",\n  \"lines\": 18,\n  \"language\": \"typescript\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Sample Test Data",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{MOCK_SERVER_URL}}/samples/testdata",
+          "host": ["{{MOCK_SERVER_URL}}"],
+          "path": ["samples", "testdata"]
+        }
+      },
+      "response": [
+        {
+          "name": "Test Data Example",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{MOCK_SERVER_URL}}/samples/testdata",
+              "host": ["{{MOCK_SERVER_URL}}"],
+              "path": ["samples", "testdata"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"mock_users\": [\n    {\n      \"id\": \"user_001\",\n      \"name\": \"Alice Johnson\",\n      \"avatar\": \"https://i.pravatar.cc/150?u=alice\",\n      \"bio\": \"Software Engineer at Tech Corp\"\n    },\n    {\n      \"id\": \"user_002\",\n      \"name\": \"Bob Smith\",\n      \"avatar\": \"https://i.pravatar.cc/150?u=bob\",\n      \"bio\": \"Product Manager\"\n    },\n    {\n      \"id\": \"user_003\",\n      \"name\": \"Charlie Brown\",\n      \"avatar\": \"https://i.pravatar.cc/150?u=charlie\",\n      \"bio\": \"UX Designer\"\n    }\n  ],\n  \"snapshot_test\": \"// Jest snapshot test\\nimport { render } from '@testing-library/react';\\nimport { ProfileCard } from './ProfileCard';\\n\\nit('matches snapshot', () => {\\n  const user = { id: '1', name: 'Test User', avatar: 'test.jpg' };\\n  const { container } = render(<ProfileCard user={user} />);\\n  expect(container.firstChild).toMatchSnapshot();\\n});\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Random Feature Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{MOCK_SERVER_URL}}/samples/feature-requests",
+          "host": ["{{MOCK_SERVER_URL}}"],
+          "path": ["samples", "feature-requests"]
+        }
+      },
+      "response": [
+        {
+          "name": "Feature Requests Example",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{MOCK_SERVER_URL}}/samples/feature-requests",
+              "host": ["{{MOCK_SERVER_URL}}"],
+              "path": ["samples", "feature-requests"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"requests\": [\n    {\n      \"id\": \"req_001\",\n      \"text\": \"Add ProfileCard to /users\",\n      \"expected_keywords\": [\"ProfileCard\", \"users\", \"component\"],\n      \"expected_files\": [\n        \"src/components/ProfileCard.tsx\",\n        \"src/pages/users.tsx\"\n      ]\n    },\n    {\n      \"id\": \"req_002\",\n      \"text\": \"Add dark mode toggle to settings\",\n      \"expected_keywords\": [\"dark mode\", \"toggle\", \"settings\", \"theme\"],\n      \"expected_files\": [\n        \"src/components/Settings.tsx\",\n        \"src/utils/theme.ts\"\n      ]\n    },\n    {\n      \"id\": \"req_003\",\n      \"text\": \"Implement search bar in navigation\",\n      \"expected_keywords\": [\"search\", \"navigation\", \"nav\", \"header\"],\n      \"expected_files\": [\n        \"src/components/Navigation.tsx\",\n        \"src/components/SearchBar.tsx\"\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key\": \"MOCK_SERVER_URL\",\n      \"value\": \"\",\n      \"type\": \"string\"\n    }\n  ]\n}"

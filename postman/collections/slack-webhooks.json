@@ -1,0 +1,123 @@
+{
+  "info": {
+    "name": "Slack Webhooks",
+    "_postman_id": "slack-webhooks-001",
+    "description": "Slack incoming webhooks for notifications",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send PM Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"✅ PR Created: Add ProfileCard to /users\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Feature:*\\nProfileCard component\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Impacted Files:*\\n2\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Engineer:*\\n@alice\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Status:*\\nReady for review\"\n        }\n      ]\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Acceptance Criteria:*\\n• ProfileCard displays user avatar and name\\n• /users route renders ProfileCard list\\n• Component has TypeScript types\\n• Snapshot tests pass\\n• Accessible markup\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Impacted Files:*\\n• `src/components/ProfileCard.tsx`\\n• `src/pages/users.tsx`\"\n      }\n    },\n    {\n      \"type\": \"actions\",\n      \"elements\": [\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"View PR\"\n          },\n          \"url\": \"https://github.com/owner/repo/pull/42\",\n          \"style\": \"primary\"\n        },\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"View Diff\"\n          },\n          \"url\": \"https://github.com/owner/repo/pull/42/files\"\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{SLACK_WEBHOOK_PM}}",
+          "host": ["{{SLACK_WEBHOOK_PM}}"]
+        },
+        "description": "Send notification to PM channel"
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"✅ PR Created\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{SLACK_WEBHOOK_PM}}",
+              "host": ["{{SLACK_WEBHOOK_PM}}"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "text",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "text/plain"
+            }
+          ],
+          "cookie": [],
+          "body": "ok"
+        }
+      ]
+    },
+    {
+      "name": "Send Engineer Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"🎯 New Task: Add ProfileCard to /users\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"Hey <@alice>! A new PR has been created for you to implement.\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Feature:*\\nProfileCard component\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Files to modify:*\\n2\"\n        }\n      ]\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*What to build:*\\n• ProfileCard displays user avatar and name\\n• /users route renders ProfileCard list\\n• Component has TypeScript types\"\n      }\n    },\n    {\n      \"type\": \"actions\",\n      \"elements\": [\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"Start Working\"\n          },\n          \"url\": \"https://github.com/owner/repo/pull/42\",\n          \"style\": \"primary\"\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{SLACK_WEBHOOK_ENG}}",
+          "host": ["{{SLACK_WEBHOOK_ENG}}"]
+        },
+        "description": "Send notification to engineer"
+      },
+      "response": []
+    },
+    {
+      "name": "Send Error Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"⚠️ PM Copilot Error\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Failed to process request:* Add ProfileCard to /users\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Error:*\\nRipgrep API timeout\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Timestamp:*\\n2025-10-25 12:00:00\"\n        }\n      ]\n    },\n    {\n      \"type\": \"context\",\n      \"elements\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"Please try again or contact support if the issue persists.\"\n        }\n      ]\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{SLACK_WEBHOOK_PM}}",
+          "host": ["{{SLACK_WEBHOOK_PM}}"]
+        },
+        "description": "Send error notification"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "SLACK_WEBHOOK_PM",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "SLACK_WEBHOOK_ENG",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
