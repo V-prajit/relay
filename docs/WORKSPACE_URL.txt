@@ -1,0 +1,32 @@
+PM COPILOT - PUBLIC WORKSPACE URL
+==================================
+
+Postman Public Workspace:
+https://www.postman.com/YOUR-USERNAME/workspace/pm-copilot-hackathon-demo/overview
+
+Replace YOUR-USERNAME with your actual Postman username after creating the workspace.
+
+IMPORTANT: This workspace should be PUBLIC for judges to access.
+
+Setup Instructions:
+1. Open Postman Desktop
+2. Create new workspace named "PM Copilot - Hackathon Demo"
+3. Set visibility to PUBLIC
+4. Import all collections from postman/collections/
+5. Import environments from postman/environments/
+6. Get the public share link
+7. Update this file with the actual URL
+
+Collections to Include:
+- PM-Copilot-Main (the Flow)
+- PM-Copilot-Health-Check
+- PM-Copilot-Dashboard (if created by Dev 1)
+- Ripgrep API Collection (if created by Dev 1)
+- GitHub API Collection (if created by Dev 1)
+- Slack API Collection (if created by Dev 1)
+
+Environments to Include:
+- PM Copilot Production (with placeholder values)
+- PM Copilot Development (with placeholder values)
+
+Remember: Remove all sensitive data before making public!

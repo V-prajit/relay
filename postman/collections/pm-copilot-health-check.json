@@ -1,0 +1,301 @@
+{
+  "info": {
+    "name": "PM-Copilot-Health-Check",
+    "description": "Automated health check collection for PM Copilot service monitoring",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Check Action Endpoint Health",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Test 1: Check response status",
+              "pm.test(\"Action endpoint responds with 200\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Test 2: Check response structure",
+              "pm.test(\"Response has required fields\", function() {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('status');",
+              "    pm.expect(json).to.have.property('version');",
+              "});",
+              "",
+              "// Test 3: Check health status",
+              "pm.test(\"Service is healthy\", function() {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.status).to.equal('healthy');",
+              "});",
+              "",
+              "// Test 4: Response time check",
+              "pm.test(\"Response time is acceptable\", function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "// Test 5: Version format check",
+              "pm.test(\"Version format is valid\", function() {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.version).to.match(/^\\d+\\.\\d+\\.\\d+$/);",
+              "});",
+              "",
+              "// Alert on failure via Slack webhook",
+              "if (pm.response.code !== 200 || pm.response.json().status !== 'healthy') {",
+              "    console.error(\"Health check FAILED - sending alert\");",
+              "    ",
+              "    const slackWebhook = pm.environment.get('SLACK_WEBHOOK_URL');",
+              "    if (slackWebhook) {",
+              "        pm.sendRequest({",
+              "            url: slackWebhook,",
+              "            method: 'POST',",
+              "            header: {",
+              "                'Content-Type': 'application/json'",
+              "            },",
+              "            body: {",
+              "                mode: 'raw',",
+              "                raw: JSON.stringify({",
+              "                    text: '🚨 PM Copilot Health Check FAILED!',",
+              "                    blocks: [",
+              "                        {",
+              "                            type: 'header',",
+              "                            text: {",
+              "                                type: 'plain_text',",
+              "                                text: '🚨 PM Copilot Alert'",
+              "                            }",
+              "                        },",
+              "                        {",
+              "                            type: 'section',",
+              "                            text: {",
+              "                                type: 'mrkdwn',",
+              "                                text: `*Status:* Service is DOWN\\n*Response Code:* ${pm.response.code}\\n*Response Time:* ${pm.response.responseTime}ms\\n*Timestamp:* ${new Date().toISOString()}`",
+              "                            }",
+              "                        },",
+              "                        {",
+              "                            type: 'actions',",
+              "                            elements: [",
+              "                                {",
+              "                                    type: 'button',",
+              "                                    text: {",
+              "                                        type: 'plain_text',",
+              "                                        text: 'View Logs'",
+              "                                    },",
+              "                                    url: 'https://postman.com/monitors'",
+              "                                }",
+              "                            ]",
+              "                        }",
+              "                    ]",
+              "                })",
+              "            }",
+              "        });",
+              "    }",
+              "}",
+              "",
+              "// Store metrics for dashboard",
+              "pm.collectionVariables.set('last_health_check', new Date().toISOString());",
+              "pm.collectionVariables.set('last_response_time', pm.response.responseTime);",
+              "pm.collectionVariables.set('last_status_code', pm.response.code);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Log health check attempt",
+              "console.log('Starting health check at:', new Date().toISOString());",
+              "",
+              "// Set timeout for this request",
+              "pm.request.timeout = 10000; // 10 seconds",
+              "",
+              "// Add correlation ID for tracking",
+              "pm.request.headers.add({",
+              "    key: 'X-Correlation-ID',",
+              "    value: `health-check-${Date.now()}`",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{ACTION_URL}}/health",
+          "host": ["{{ACTION_URL}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Test Core Functionality",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Test with sample PR creation request",
+              "pm.test(\"Core functionality responds\", function() {",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 202]);",
+              "});",
+              "",
+              "// Check response structure",
+              "pm.test(\"Response has success field\", function() {",
+              "    const json = pm.response.json();",
+              "    pm.expect(json).to.have.property('success');",
+              "});",
+              "",
+              "// Performance check",
+              "pm.test(\"API responds within SLA\", function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(30000); // 30 seconds",
+              "});",
+              "",
+              "// Store test results",
+              "if (pm.response.json().success) {",
+              "    pm.collectionVariables.set('last_successful_test', new Date().toISOString());",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"HEALTH_CHECK: Test PR creation\",\n  \"user_id\": \"@health-monitor\"\n}"
+        },
+        "url": {
+          "raw": "{{ACTION_URL}}",
+          "host": ["{{ACTION_URL}}"]
+        }
+      }
+    },
+    {
+      "name": "Check API Dependencies",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// This checks if the PM Copilot can reach its dependencies",
+              "pm.test(\"Dependencies endpoint responds\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// Check each dependency status",
+              "pm.test(\"All dependencies are healthy\", function() {",
+              "    const json = pm.response.json();",
+              "    if (json.dependencies) {",
+              "        pm.expect(json.dependencies.ripgrep).to.equal('healthy');",
+              "        pm.expect(json.dependencies.github).to.equal('healthy');",
+              "        pm.expect(json.dependencies.slack).to.equal('healthy');",
+              "    }",
+              "});",
+              "",
+              "// Alert if any dependency is down",
+              "const json = pm.response.json();",
+              "if (json.dependencies) {",
+              "    const failedDeps = [];",
+              "    Object.keys(json.dependencies).forEach(dep => {",
+              "        if (json.dependencies[dep] !== 'healthy') {",
+              "            failedDeps.push(dep);",
+              "        }",
+              "    });",
+              "    ",
+              "    if (failedDeps.length > 0) {",
+              "        console.error('Dependencies failing:', failedDeps.join(', '));",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{ACTION_URL}}/dependencies",
+          "host": ["{{ACTION_URL}}"],
+          "path": ["dependencies"]
+        }
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script",
+          "console.log('PM Copilot Health Check Collection');",
+          "console.log('Environment:', pm.environment.name);",
+          "console.log('Timestamp:', new Date().toISOString());"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global test script",
+          "// Aggregate results for reporting",
+          "const testResults = pm.test.results;",
+          "const totalTests = testResults.length;",
+          "const passedTests = testResults.filter(r => r.pass).length;",
+          "const failedTests = totalTests - passedTests;",
+          "",
+          "console.log(`Health Check Summary: ${passedTests}/${totalTests} tests passed`);",
+          "",
+          "// Store summary",
+          "pm.collectionVariables.set('health_check_summary', {",
+          "    timestamp: new Date().toISOString(),",
+          "    total: totalTests,",
+          "    passed: passedTests,",
+          "    failed: failedTests,",
+          "    success_rate: (passedTests / totalTests * 100).toFixed(2) + '%'",
+          "});"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "last_health_check",
+      "value": ""
+    },
+    {
+      "key": "last_response_time",
+      "value": ""
+    },
+    {
+      "key": "last_status_code",
+      "value": ""
+    },
+    {
+      "key": "last_successful_test",
+      "value": ""
+    },
+    {
+      "key": "health_check_summary",
+      "value": ""
+    }
+  ]
+}
