@@ -3,73 +3,73 @@
   "values": [
     {
       "key": "ACTION_URL",
-      "value": "{{YOUR_POSTMAN_ACTION_URL}}",
+      "value": "",
       "type": "default",
       "enabled": true,
-      "description": "Postman Flow Action URL (e.g., https://flows-action.postman.com/xxxxx)"
+      "description": "Postman Flow Action URL (deploy Flow first to get this)"
     },
     {
       "key": "CLAUDE_API_KEY",
-      "value": "{{YOUR_CLAUDE_API_KEY}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Anthropic Claude API key from docs.anthropic.com"
+      "description": "Fill in Postman after importing"
     },
     {
       "key": "GITHUB_TOKEN",
-      "value": "{{YOUR_GITHUB_TOKEN}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "GitHub Personal Access Token with repo scope"
+      "description": "Fill in Postman after importing"
     },
     {
       "key": "SLACK_WEBHOOK_URL",
-      "value": "{{YOUR_SLACK_WEBHOOK_URL}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for alerts and notifications"
+      "description": "Fill in Postman after importing"
     },
     {
       "key": "SLACK_WEBHOOK_PM",
-      "value": "{{YOUR_SLACK_PM_WEBHOOK}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for PM notifications"
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
     },
     {
       "key": "SLACK_WEBHOOK_ENG",
-      "value": "{{YOUR_SLACK_ENG_WEBHOOK}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for engineering notifications"
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
     },
     {
       "key": "REPO_OWNER",
-      "value": "{{YOUR_GITHUB_ORG}}",
+      "value": "",
       "type": "default",
       "enabled": true,
-      "description": "GitHub repository owner/organization"
+      "description": "Your GitHub username"
     },
     {
       "key": "REPO_NAME",
-      "value": "{{YOUR_REPO_NAME}}",
+      "value": "youareabsolutelyright",
       "type": "default",
       "enabled": true,
-      "description": "GitHub repository name"
+      "description": "This repository name"
     },
     {
       "key": "GOOGLE_CALENDAR_API_KEY",
-      "value": "{{YOUR_GOOGLE_API_KEY}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Google Calendar API key for availability checking"
+      "description": "Optional - not needed for basic testing"
     },
     {
       "key": "RIPGREP_API_URL",
-      "value": "https://your-ripgrep-api.com",
+      "value": "",
       "type": "default",
       "enabled": true,
-      "description": "Ripgrep API endpoint URL"
+      "description": "Production Ripgrep API endpoint URL"
     },
     {
       "key": "MAX_PR_SIZE",

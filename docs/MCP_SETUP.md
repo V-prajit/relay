@@ -167,25 +167,25 @@ Expected response:
 
 ## Troubleshooting
 
-### "Connection refused" Error
-- **Check Action URL**: Ensure the URL is correct and includes protocol (https://)
-- **Verify Deployment**: Check Postman Flow is deployed as Action
-- **Test Manually**: Use curl to test the endpoint directly
+### Connection Refused
+- Check Action URL is correct and includes protocol (https://)
+- Verify Postman Flow is deployed as Action
+- Test manually using curl
 
-### "Timeout" Error
-- **Increase Timeout**: MCP server config includes 30-second timeout
-- **Check Flow Performance**: Review Postman Flow Analytics for bottlenecks
-- **Optimize API Calls**: Ensure parallel API calls where possible
+### Timeout Error
+- Increase timeout in MCP server config (default 30 seconds)
+- Review Postman Flow Analytics for bottlenecks
+- Ensure parallel API calls where possible
 
-### "MCP not found" in Claude
-- **Restart Required**: Always restart Claude Desktop after adding MCP servers
-- **Check Config Format**: Ensure JSON is valid (use jsonlint.com)
-- **Verify URL Format**: Must be full URL with https://
+### MCP Not Found in Claude
+- Restart Claude Desktop after adding MCP servers
+- Validate JSON format
+- Verify URL format includes https://
 
-### "Authentication failed"
-- **API Keys**: Check all required API keys are set in Postman environment
-- **Token Format**: GitHub needs "Bearer" prefix, Claude needs "x-api-key" header
-- **Webhook URLs**: Slack webhooks don't need auth but must be valid
+### Authentication Failed
+- Check all required API keys are set in Postman environment
+- GitHub requires "Bearer" prefix, Claude requires "x-api-key" header
+- Verify Slack webhook URLs are valid
 
 ## Advanced Configuration
 
@@ -242,11 +242,9 @@ Optional Google Calendar integration for engineer availability:
 
 ## Support
 
-- **GitHub Issues**: [github.com/yourusername/pm-copilot/issues](https://github.com/yourusername/pm-copilot/issues)
-- **Slack Channel**: #pm-copilot-support
-- **Email**: support@pmcopilot.tech
-
----
+GitHub Issues: github.com/yourusername/pm-copilot/issues
+Slack Channel: #pm-copilot-support
+Email: support@pmcopilot.tech
 
 Last Updated: January 2025
 Version: 1.0.0
