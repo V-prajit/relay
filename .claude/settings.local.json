@@ -6,7 +6,8 @@
       "Bash(pip install:*)",
       "Bash(cat:*)",
       "Bash(python -c:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []
