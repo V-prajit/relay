@@ -3,66 +3,66 @@
   "values": [
     {
       "key": "ACTION_URL",
-      "value": "http://localhost:3000",
+      "value": "http://localhost:3001",
       "type": "default",
       "enabled": true,
-      "description": "Local development server URL"
+      "description": "Ripgrep API URL for testing"
     },
     {
       "key": "CLAUDE_API_KEY",
-      "value": "{{YOUR_CLAUDE_API_KEY}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Anthropic Claude API key from docs.anthropic.com"
+      "description": "Leave empty, will read from .env file"
     },
     {
       "key": "GITHUB_TOKEN",
-      "value": "{{YOUR_GITHUB_TOKEN}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "GitHub Personal Access Token with repo scope"
+      "description": "Leave empty, will read from .env file"
     },
     {
       "key": "SLACK_WEBHOOK_URL",
-      "value": "{{YOUR_SLACK_WEBHOOK_URL}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for alerts and notifications"
+      "description": "Leave empty, will read from .env file"
     },
     {
       "key": "SLACK_WEBHOOK_PM",
-      "value": "{{YOUR_SLACK_PM_WEBHOOK}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for PM notifications"
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
     },
     {
       "key": "SLACK_WEBHOOK_ENG",
-      "value": "{{YOUR_SLACK_ENG_WEBHOOK}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Slack webhook for engineering notifications"
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
     },
     {
       "key": "REPO_OWNER",
-      "value": "test-org",
+      "value": "",
       "type": "default",
       "enabled": true,
-      "description": "GitHub repository owner/organization"
+      "description": "Your GitHub username"
     },
     {
       "key": "REPO_NAME",
-      "value": "test-repo",
+      "value": "youareabsolutelyright",
       "type": "default",
       "enabled": true,
-      "description": "GitHub repository name"
+      "description": "This repository name"
     },
     {
       "key": "GOOGLE_CALENDAR_API_KEY",
-      "value": "{{YOUR_GOOGLE_API_KEY}}",
+      "value": "",
       "type": "secret",
       "enabled": true,
-      "description": "Google Calendar API key for availability checking"
+      "description": "Optional - not needed for basic testing"
     },
     {
       "key": "RIPGREP_API_URL",

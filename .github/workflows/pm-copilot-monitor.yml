@@ -114,20 +114,19 @@ jobs:
             const failed = '${{ steps.parse-results.outputs.failed_tests }}';
             const rate = '${{ steps.parse-results.outputs.success_rate }}';
 
-            const emoji = status === 'passed' ? '✅' : '❌';
             const statusText = status === 'passed' ? 'PASSED' : 'FAILED';
 
-            const comment = `## ${emoji} PM Copilot Health Check ${statusText}
+            const comment = `## PM Copilot Health Check ${statusText}
 
-            **Test Results:**
+            Test Results:
             - Total Tests: ${total}
             - Passed: ${passed}
             - Failed: ${failed}
             - Success Rate: ${rate}%
 
-            **Report:** [Download HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            Report: [Download HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
-            _Generated at: ${new Date().toISOString()}_`;
+            Generated at: ${new Date().toISOString()}`;
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -147,18 +146,18 @@ jobs:
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🚨 PM Copilot Health Check Failed - ${failed}/${total} tests failing`,
+              title: `PM Copilot Health Check Failed - ${failed}/${total} tests failing`,
               body: `## Health Check Failure Alert
 
               The scheduled health check has detected failures in the PM Copilot service.
 
-              **Details:**
+              Details:
               - Run ID: ${{ github.run_id }}
               - Failed Tests: ${failed}
               - Total Tests: ${total}
               - Timestamp: ${new Date().toISOString()}
 
-              **Action Required:**
+              Action Required:
               1. Check the [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
               2. Download and review the HTML report
               3. Check service logs for errors
@@ -175,13 +174,13 @@ jobs:
             curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
               -H 'Content-Type: application/json' \
               -d '{
-                "text": "✅ PM Copilot health check PASSED",
+                "text": "PM Copilot health check PASSED",
                 "blocks": [
                   {
                     "type": "section",
                     "text": {
                       "type": "mrkdwn",
-                      "text": "✅ *PM Copilot Health Check Passed*\n• Tests: ${{ steps.parse-results.outputs.passed_tests }}/${{ steps.parse-results.outputs.total_tests }}\n• Success Rate: ${{ steps.parse-results.outputs.success_rate }}%\n• <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                      "text": "*PM Copilot Health Check Passed*\nTests: ${{ steps.parse-results.outputs.passed_tests }}/${{ steps.parse-results.outputs.total_tests }}\nSuccess Rate: ${{ steps.parse-results.outputs.success_rate }}%\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
                     }
                   }
                 ]
@@ -195,20 +194,20 @@ jobs:
             curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
               -H 'Content-Type: application/json' \
               -d '{
-                "text": "🚨 PM Copilot health check FAILED",
+                "text": "PM Copilot health check FAILED",
                 "blocks": [
                   {
                     "type": "header",
                     "text": {
                       "type": "plain_text",
-                      "text": "🚨 PM Copilot Health Check Failed"
+                      "text": "PM Copilot Health Check Failed"
                     }
                   },
                   {
                     "type": "section",
                     "text": {
                       "type": "mrkdwn",
-                      "text": "*Test Results:*\n• Failed: ${{ steps.parse-results.outputs.failed_tests }}/${{ steps.parse-results.outputs.total_tests }}\n• Success Rate: ${{ steps.parse-results.outputs.success_rate }}%\n• Run: #${{ github.run_number }}"
+                      "text": "Test Results:\nFailed: ${{ steps.parse-results.outputs.failed_tests }}/${{ steps.parse-results.outputs.total_tests }}\nSuccess Rate: ${{ steps.parse-results.outputs.success_rate }}%\nRun: #${{ github.run_number }}"
                     }
                   },
                   {
