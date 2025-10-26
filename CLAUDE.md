@@ -18,6 +18,37 @@ git update-index --no-assume-unchanged CLAUDE.md
 
 ## Recent Updates (2025-10-25)
 
+### 🚧 CURRENT SETUP PROGRESS (Track here if context resets)
+
+**Status: Creating Postman Flow Modules for AI Agent**
+
+**What's Complete:**
+- ✅ All 6 collection JSON files created (`postman/modules/`)
+- ✅ All 6 collections imported into Postman
+- ✅ Dashboard API backend built (`dashboard-api/`)
+- ✅ Dashboard frontend built (`frontend/`)
+- ✅ Comprehensive documentation created
+
+**Next Steps (IN PROGRESS):**
+- ✅ **Step 1/6**: Create "Ripgrep Search Tool" flow module - COMPLETE
+- ✅ **Step 2/6**: Create "Get Open PRs Tool" flow module - COMPLETE
+- ✅ **Step 3/6**: Create "Get PR Files Tool" flow module - COMPLETE
+- ⏳ **Step 4/6**: Create "Claude Generate PR Tool" flow module - IN PROGRESS (fixing Evaluate block)
+- ⏹️ **Step 5/6**: Create "Create GitHub PR Tool" flow module
+- ⏹️ **Step 6/6**: Create "Send Slack Notification Tool" flow module
+- ⏹️ **Step 7**: Configure AI Agent with all 6 tools + system prompt
+- ⏹️ **Step 8**: Deploy as Postman Action
+- ⏹️ **Step 9**: Test end-to-end
+
+**Current Issues Being Fixed:**
+- 🔧 Evaluate block in For Each loop: Fixing "data is not defined" error - need to use Postman Flows variable syntax
+- 🔧 Backend server: Restarted successfully on port 8000 using `python run.py`
+- ✅ Get PR Files working perfectly - returns all 30 files from PR #8
+
+**See**: `/postman/FLOW_MODULE_SETUP_GUIDE.md` for detailed step-by-step instructions
+
+---
+
 ### ✅ New Feature Handling Implementation
 
 **What Changed:**
@@ -1144,6 +1175,107 @@ npm run dev
 - [.tech Domain (MLH)](https://get.tech/mlh)
 - [DigitalOcean App Platform](https://www.digitalocean.com/products/app-platform)
 - [CodeRabbit Integration](https://docs.coderabbit.ai/platforms/github-com)
+
+---
+
+## 🔧 Troubleshooting Guide (2025-10-26)
+
+### Backend Server Issues
+
+**Problem: Socket hangup on port 8000**
+- **Solution**: Start backend using `python run.py` (not `python app/main.py`)
+- **Command**:
+  ```bash
+  cd backend
+  python run.py
+  ```
+- **Verify**: `curl http://localhost:8000/health`
+- **Expected**: `{"status":"healthy","version":"1.0.0","service":"BugRewind API"}`
+
+### Postman Flows Evaluate Block Issues
+
+**Problem: "data is not defined" in Evaluate block**
+
+The `data` object doesn't exist by default in Postman Flows Evaluate blocks. Use one of these approaches:
+
+**Solution 1: Use Postman variable syntax (recommended)**
+```javascript
+const ripgrepFiles = {{RIPGREP API.body.data.files}} || [];
+const prFiles = {{Get PR Files.body}} || [];
+const pr = {{item}};
+
+const prFilenames = prFiles.map(f => f.filename);
+
+const overlapping = ripgrepFiles.filter(ripgrepFile =>
+  prFilenames.some(prFile =>
+    prFile.includes(ripgrepFile) || ripgrepFile.includes(prFile)
+  )
+);
+
+const conflictScore = ripgrepFiles.length > 0
+  ? Math.round((overlapping.length / ripgrepFiles.length) * 100)
+  : 0;
+
+({
+  pr_number: pr.number,
+  pr_title: pr.title,
+  pr_url: pr.html_url,
+  overlapping_files: overlapping,
+  conflict_score: conflictScore,
+  has_conflict: conflictScore > 0
+})
+```
+
+**Solution 2: Define inputs explicitly**
+- In Evaluate block UI, add inputs:
+  - `ripgrepFiles` = `{{RIPGREP API.body.data.files}}`
+  - `prFiles` = `{{Get PR Files.body}}`
+  - `currentPR` = `{{item}}`
+- Then reference them directly in code by name
+
+**Problem: "return not in a function" error**
+- **Solution**: Don't use explicit `return` statement
+- **Instead**: Use parentheses around final object: `({ key: value })`
+
+### Claude API Issues
+
+**Problem: 404 Not Found when calling Claude API**
+- **Cause**: Wrong URL (posting to `/` instead of `/v1/messages`)
+- **Solution**: Update HTTP Request block:
+  - URL: `https://api.anthropic.com/v1/messages`
+  - Headers:
+    ```
+    x-api-key: {{CLAUDE_API_KEY}}
+    anthropic-version: 2023-06-01
+    content-type: application/json
+    ```
+
+### GitHub API Issues
+
+**Problem: Get PR Files returns empty or fails**
+- **Verify variables**:
+  - `REPO_OWNER` = repository owner (e.g., "V-prajit")
+  - `REPO_NAME` = repository name (e.g., "youareabsolutelyright")
+  - `pr_number` = PR number from loop item
+- **URL format**: `https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls/{{pr_number}}/files`
+
+### Quick Health Checks
+
+```bash
+# Backend server
+curl http://localhost:8000/health
+
+# Check running server
+lsof -ti:8000
+
+# Restart backend
+cd backend && python run.py
+
+# Test Ripgrep API
+curl -X POST http://localhost:8000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"text": "authentication"}'
+```
 
 ## License
 
