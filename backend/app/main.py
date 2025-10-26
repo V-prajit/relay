@@ -80,6 +80,17 @@ async def health_check() -> Dict[str, str]:
     }
 
 
-# Import and include routers (we'll add these as we build them)
-# from app.routes import analyze
-# app.include_router(analyze.router, prefix="/api", tags=["analysis"])
+# Import and include routers
+# Temporarily commented out - missing dependencies (fitz/PyMuPDF)
+# from app.routes import deepseek
+# app.include_router(deepseek.router, prefix="/api", tags=["deepseek-ocr"])
+
+# Snowflake routes
+try:
+    from app.routes import snowflake
+    app.include_router(snowflake.router, prefix="/api")
+    print("✓ Snowflake routes loaded")
+except ImportError as e:
+    print(f"⚠ Snowflake routes not loaded: {e}")
+except Exception as e:
+    print(f"⚠ Error loading Snowflake routes: {e}")
