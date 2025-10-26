@@ -1,0 +1,219 @@
+{
+  "id": "relay-command-flow",
+  "name": "Relay Command Flow - PM Copilot",
+  "description": "Postman Flow for /relay Slack command - Orchestrates Ripgrep + Snowflake Cortex + GitHub + Slack notifications",
+  "createdBy": "pm-copilot",
+  "version": "1.0.0",
+  "flow": {
+    "blocks": [
+      {
+        "id": "start",
+        "type": "request",
+        "name": "Webhook Start",
+        "description": "Receives /relay command from Slack via ngrok webhook",
+        "config": {
+          "method": "POST",
+          "path": "/relay",
+          "responseTimeout": 30000
+        },
+        "output": {
+          "text": "{{body.text}}",
+          "user_id": "{{body.user_id}}",
+          "user_name": "{{body.user_name}}",
+          "channel_id": "{{body.channel_id}}",
+          "response_url": "{{body.response_url}}"
+        }
+      },
+      {
+        "id": "acknowledge",
+        "type": "http",
+        "name": "Acknowledge Slack",
+        "description": "Immediately acknowledge Slack (required within 3s)",
+        "dependsOn": ["start"],
+        "config": {
+          "method": "POST",
+          "url": "{{start.response_url}}",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "response_type": "in_channel",
+            "text": "⏳ Processing your request: \"{{start.text}}\""
+          },
+          "timeout": 3000
+        }
+      },
+      {
+        "id": "ripgrep_search",
+        "type": "http",
+        "name": "RIPGREP API",
+        "description": "Search codebase for relevant files (via backend proxy)",
+        "dependsOn": ["acknowledge"],
+        "config": {
+          "method": "POST",
+          "url": "{{BACKEND_API_URL}}/api/ripgrep/search",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "query": "{{start.text}}",
+            "path": "./",
+            "type": "all",
+            "case_sensitive": false
+          },
+          "timeout": 10000
+        },
+        "output": {
+          "files": "{{body.data.files}}",
+          "total": "{{body.data.total}}",
+          "is_new_feature": "{{body.data.is_new_feature}}",
+          "message": "{{body.data.message}}"
+        }
+      },
+      {
+        "id": "snowflake_generate",
+        "type": "http",
+        "name": "Snowflake Cortex",
+        "description": "Generate PR with Snowflake Cortex (Mistral-Large)",
+        "dependsOn": ["ripgrep_search"],
+        "config": {
+          "method": "POST",
+          "url": "{{BACKEND_API_URL}}/api/snowflake/generate-pr",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "feature_request": "{{start.text}}",
+            "impacted_files": "{{ripgrep_search.files}}",
+            "is_new_feature": "{{ripgrep_search.is_new_feature}}",
+            "repo_name": "{{REPO_OWNER}}/{{REPO_NAME}}"
+          },
+          "timeout": 30000
+        },
+        "output": {
+          "pr_title": "{{body.pr_title}}",
+          "pr_description": "{{body.pr_description}}",
+          "branch_name": "{{body.branch_name}}",
+          "generated_by": "{{body.generated_by}}"
+        }
+      },
+      {
+        "id": "slack_notification",
+        "type": "http",
+        "name": "Send Slack Notification",
+        "description": "Post rich Block Kit message to Slack",
+        "dependsOn": ["snowflake_generate"],
+        "config": {
+          "method": "POST",
+          "url": "{{start.response_url}}",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "response_type": "in_channel",
+            "blocks": [
+              {
+                "type": "header",
+                "text": {
+                  "type": "plain_text",
+                  "text": "✅ Task Created: {{snowflake_generate.pr_title}}"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Feature Request:* {{start.text}}\n*Requested by:* <@{{start.user_id}}> (PM)"
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Files Impacted:* {{ripgrep_search.total}}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Is New Feature:* {{#if ripgrep_search.is_new_feature}}Yes 🆕{{else}}No 🔧{{/if}}"
+                  }
+                ]
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*Branch:* `{{snowflake_generate.branch_name}}`"
+                }
+              },
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*PR Description:*\n{{snowflake_generate.pr_description}}"
+                }
+              },
+              {
+                "type": "actions",
+                "elements": [
+                  {
+                    "type": "button",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "View Repo"
+                    },
+                    "url": "https://github.com/{{REPO_OWNER}}/{{REPO_NAME}}"
+                  }
+                ]
+              },
+              {
+                "type": "context",
+                "elements": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "🎯 Hybrid AI: *Postman orchestrates* • *Snowflake Cortex generates* • {{snowflake_generate.generated_by}}"
+                  }
+                ]
+              }
+            ]
+          },
+          "timeout": 5000
+        }
+      },
+      {
+        "id": "response",
+        "type": "response",
+        "name": "Final Response",
+        "description": "Return success status",
+        "dependsOn": ["slack_notification"],
+        "config": {
+          "statusCode": 200,
+          "body": {
+            "success": true,
+            "message": "PR task created successfully",
+            "pr_title": "{{snowflake_generate.pr_title}}",
+            "branch_name": "{{snowflake_generate.branch_name}}",
+            "files_impacted": "{{ripgrep_search.total}}"
+          }
+        }
+      }
+    ],
+    "variables": [
+      {
+        "key": "BACKEND_API_URL",
+        "value": "https://b27068eb34a6.ngrok-free.app",
+        "description": "Backend API endpoint (single ngrok tunnel for all services)"
+      },
+      {
+        "key": "REPO_OWNER",
+        "value": "V-prajit",
+        "description": "GitHub repository owner"
+      },
+      {
+        "key": "REPO_NAME",
+        "value": "youareabsolutelyright",
+        "description": "GitHub repository name"
+      }
+    ]
+  }
+}

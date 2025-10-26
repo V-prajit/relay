@@ -94,3 +94,33 @@ except ImportError as e:
     print(f"⚠ Snowflake routes not loaded: {e}")
 except Exception as e:
     print(f"⚠ Error loading Snowflake routes: {e}")
+
+# Dashboard routes
+try:
+    from app.routes import dashboard
+    app.include_router(dashboard.router, prefix="/api")
+    print("✓ Dashboard routes loaded")
+except ImportError as e:
+    print(f"⚠ Dashboard routes not loaded: {e}")
+except Exception as e:
+    print(f"⚠ Error loading Dashboard routes: {e}")
+
+# Cortex Showcase routes
+try:
+    from app.routes import cortex_showcase
+    app.include_router(cortex_showcase.router, prefix="/api")
+    print("✓ Cortex Showcase routes loaded")
+except ImportError as e:
+    print(f"⚠ Cortex Showcase routes not loaded: {e}")
+except Exception as e:
+    print(f"⚠ Error loading Cortex Showcase routes: {e}")
+
+# Ripgrep Proxy routes (for Postman Action via ngrok)
+try:
+    from app.routes import ripgrep_proxy
+    app.include_router(ripgrep_proxy.router, prefix="/api")
+    print("✓ Ripgrep Proxy routes loaded (Postman can now call /api/ripgrep/search)")
+except ImportError as e:
+    print(f"⚠ Ripgrep Proxy routes not loaded: {e}")
+except Exception as e:
+    print(f"⚠ Error loading Ripgrep Proxy routes: {e}")

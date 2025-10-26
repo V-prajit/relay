@@ -1,0 +1,231 @@
+# Snowflake Cortex Analyst Semantic Model for BugRewind
+# Enables natural language queries over PR generation and bug analysis data
+#
+# Usage: Upload to Snowflake and query with natural language like:
+# - "How many PRs were generated this week?"
+# - "What's the average execution time for new features?"
+# - "Show me PRs related to authentication bugs"
+
+name: bugrewind_pr_analytics
+description: "Semantic model for BugRewind PR generation and bug analysis data"
+
+tables:
+  - name: pr_generations
+    description: "Pull request generations created by Snowflake Cortex LLM"
+    base_table:
+      database: BUGREWIND
+      schema: GIT_ANALYSIS
+      table: PR_GENERATIONS
+
+    dimensions:
+      - name: feature_request
+        synonyms: ["feature description", "request", "task", "requirement"]
+        description: "The original feature request from the PM"
+        expr: FEATURE_REQUEST
+        data_type: TEXT
+        unique: false
+        sample_values:
+          - "fix mobile login responsive design"
+          - "add dark mode toggle to settings"
+          - "update search functionality"
+
+      - name: pr_title
+        synonyms: ["pull request title", "PR name", "title"]
+        description: "Generated pull request title"
+        expr: PR_TITLE
+        data_type: TEXT
+        unique: false
+
+      - name: branch_name
+        synonyms: ["git branch", "branch"]
+        description: "Git branch name for the PR"
+        expr: BRANCH_NAME
+        data_type: TEXT
+        unique: false
+
+      - name: is_new_feature
+        synonyms: ["new feature flag", "feature type", "is new"]
+        description: "Whether this is a new feature (true) or update (false)"
+        expr: IS_NEW_FEATURE
+        data_type: BOOLEAN
+        unique: false
+        sample_values: [true, false]
+
+      - name: repo_name
+        synonyms: ["repository", "repo", "project"]
+        description: "GitHub repository name"
+        expr: REPO_NAME
+        data_type: TEXT
+        unique: false
+
+      - name: model_used
+        synonyms: ["AI model", "LLM model", "Cortex model"]
+        description: "Snowflake Cortex LLM model used for generation"
+        expr: MODEL_USED
+        data_type: TEXT
+        unique: false
+        sample_values:
+          - "mistral-large"
+          - "llama3-70b"
+          - "mixtral-8x7b"
+
+      - name: generated_at
+        synonyms: ["creation time", "timestamp", "when created", "date"]
+        description: "When the PR was generated"
+        expr: GENERATED_AT
+        data_type: TIMESTAMP_LTZ
+        unique: false
+
+    measures:
+      - name: total_prs
+        synonyms: ["number of PRs", "PR count", "how many PRs"]
+        description: "Total number of pull requests generated"
+        expr: COUNT(*)
+        data_type: NUMBER
+
+      - name: avg_execution_time
+        synonyms: ["average time", "mean execution time", "typical duration"]
+        description: "Average time to generate a PR in milliseconds"
+        expr: AVG(EXECUTION_TIME_MS)
+        data_type: NUMBER
+
+      - name: total_execution_time
+        synonyms: ["total time spent", "cumulative time"]
+        description: "Total execution time across all PR generations"
+        expr: SUM(EXECUTION_TIME_MS)
+        data_type: NUMBER
+
+      - name: new_feature_count
+        synonyms: ["number of new features", "new features"]
+        description: "Count of new features created"
+        expr: COUNT_IF(IS_NEW_FEATURE = TRUE)
+        data_type: NUMBER
+
+      - name: update_count
+        synonyms: ["number of updates", "existing feature updates"]
+        description: "Count of updates to existing features"
+        expr: COUNT_IF(IS_NEW_FEATURE = FALSE)
+        data_type: NUMBER
+
+    time_dimensions:
+      - name: generated_date
+        synonyms: ["date generated", "creation date"]
+        description: "Date when PR was generated"
+        expr: DATE(GENERATED_AT)
+        data_type: DATE
+        unique: false
+
+      - name: generated_week
+        synonyms: ["week", "weekly"]
+        description: "Week when PR was generated"
+        expr: DATE_TRUNC('WEEK', GENERATED_AT)
+        data_type: DATE
+        unique: false
+
+      - name: generated_month
+        synonyms: ["month", "monthly"]
+        description: "Month when PR was generated"
+        expr: DATE_TRUNC('MONTH', GENERATED_AT)
+        data_type: DATE
+        unique: false
+
+
+  - name: commits
+    description: "Git commit history for bug tracking"
+    base_table:
+      database: BUGREWIND
+      schema: GIT_ANALYSIS
+      table: COMMITS
+
+    dimensions:
+      - name: commit_hash
+        synonyms: ["commit ID", "hash", "SHA"]
+        description: "Unique commit identifier"
+        expr: COMMIT_HASH
+        data_type: TEXT
+        unique: true
+
+      - name: commit_message
+        synonyms: ["message", "commit description"]
+        description: "Git commit message"
+        expr: MESSAGE
+        data_type: TEXT
+        unique: false
+
+      - name: author
+        synonyms: ["developer", "committer", "who committed"]
+        description: "Developer who made the commit"
+        expr: AUTHOR
+        data_type: TEXT
+        unique: false
+
+      - name: repo_name
+        synonyms: ["repository", "repo", "project"]
+        description: "Repository name"
+        expr: REPO_NAME
+        data_type: TEXT
+        unique: false
+
+      - name: timestamp
+        synonyms: ["commit time", "when committed", "date"]
+        description: "When the commit was made"
+        expr: TIMESTAMP
+        data_type: TIMESTAMP_LTZ
+        unique: false
+
+    measures:
+      - name: total_commits
+        synonyms: ["number of commits", "commit count"]
+        description: "Total number of commits"
+        expr: COUNT(*)
+        data_type: NUMBER
+
+      - name: total_insertions
+        synonyms: ["lines added", "additions"]
+        description: "Total lines of code added"
+        expr: SUM(INSERTIONS)
+        data_type: NUMBER
+
+      - name: total_deletions
+        synonyms: ["lines removed", "deletions"]
+        description: "Total lines of code removed"
+        expr: SUM(DELETIONS)
+        data_type: NUMBER
+
+      - name: unique_authors
+        synonyms: ["number of developers", "developer count"]
+        description: "Number of unique developers"
+        expr: COUNT(DISTINCT AUTHOR)
+        data_type: NUMBER
+
+
+# Example natural language queries this model supports:
+#
+# 1. "How many PRs were generated this week?"
+#    → Returns weekly PR count
+#
+# 2. "What's the average execution time for Mistral-Large?"
+#    → Filters by model_used = 'mistral-large' and returns avg
+#
+# 3. "Show me new features created in the last 7 days"
+#    → Filters IS_NEW_FEATURE = true and generated_at >= 7 days ago
+#
+# 4. "Which model is fastest on average?"
+#    → Groups by model_used, returns avg execution time
+#
+# 5. "How many commits were made by each developer?"
+#    → Groups by author, returns count
+#
+# 6. "What's the total execution time for all PR generations?"
+#    → Sums EXECUTION_TIME_MS across all rows
+#
+# 7. "Show me PRs related to authentication"
+#    → Semantic search in FEATURE_REQUEST for 'authentication'
+
+
+# Deployment instructions:
+# 1. Save this file as bugrewind_semantic_model.yaml
+# 2. In Snowsight, navigate to Data > Databases > BUGREWIND > GIT_ANALYSIS
+# 3. Click "Create" > "Cortex Analyst Semantic Model"
+# 4. Upload this YAML file
+# 5. Test with natural language queries in Cortex Analyst interface

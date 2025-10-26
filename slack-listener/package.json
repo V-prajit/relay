@@ -1,0 +1,29 @@
+{
+  "name": "pm-copilot-slack-listener",
+  "version": "1.0.0",
+  "description": "Slack Socket Mode listener for PM Copilot - no public URL required!",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "slack",
+    "socket-mode",
+    "pm-copilot",
+    "localhost"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@slack/bolt": "^3.17.1",
+    "axios": "^1.6.5",
+    "dotenv": "^16.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
