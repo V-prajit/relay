@@ -1,0 +1,55 @@
+{
+  "id": "pm-copilot-env-001",
+  "name": "PM Copilot Environment",
+  "values": [
+    {
+      "key": "RIPGREP_API_URL",
+      "value": "http://localhost:3001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "CLAUDE_API_KEY",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "GITHUB_TOKEN",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "SLACK_WEBHOOK_PM",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "SLACK_WEBHOOK_ENG",
+      "value": "",
+      "type": "secret",
+      "enabled": true
+    },
+    {
+      "key": "REPO_OWNER",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "REPO_NAME",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "MOCK_SERVER_URL",
+      "value": "",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
