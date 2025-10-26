@@ -1,0 +1,32 @@
+{
+  "name": "ripgrep-api",
+  "version": "1.0.0",
+  "description": "HTTP API wrapper for ripgrep code search",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "cd .. && node --watch ripgrep-api/src/index.js",
+    "start": "cd .. && node ripgrep-api/src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "ripgrep",
+    "code-search",
+    "api",
+    "pm-copilot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@vscode/ripgrep": "^1.15.9",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

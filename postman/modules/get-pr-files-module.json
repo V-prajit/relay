@@ -1,0 +1,148 @@
+{
+  "info": {
+    "name": "Get PR Files Module",
+    "_postman_id": "get-pr-files-module-001",
+    "description": "Flow module for fetching changed files in a specific PR. Used for conflict detection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get PR Changed Files",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Log the request",
+              "console.log('Fetching files for PR #' + pm.variables.get('pr_number'));",
+              "",
+              "// Validate pr_number exists",
+              "if (!pm.variables.get('pr_number')) {",
+              "    throw new Error('pr_number variable is required');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Validate response",
+              "pm.test('Successfully fetched PR files', function() {",
+              "    pm.response.to.have.status(200);",
+              "    const files = pm.response.json();",
+              "    pm.expect(files).to.be.an('array');",
+              "});",
+              "",
+              "// Extract file paths",
+              "const files = pm.response.json();",
+              "const filePaths = files.map(f => f.filename);",
+              "",
+              "// Store for conflict analysis",
+              "const prNumber = pm.variables.get('pr_number');",
+              "pm.environment.set('pr_' + prNumber + '_files', JSON.stringify(filePaths));",
+              "pm.environment.set('pr_' + prNumber + '_file_count', files.length);",
+              "",
+              "// Log results",
+              "console.log('PR #' + prNumber + ' changed files:', files.length);",
+              "console.log('Files:', filePaths);",
+              "",
+              "pm.test('Response time acceptable', function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{GITHUB_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/vnd.github+json",
+            "type": "text"
+          },
+          {
+            "key": "X-GitHub-Api-Version",
+            "value": "2022-11-28",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls/{{pr_number}}/files",
+          "protocol": "https",
+          "host": ["api", "github", "com"],
+          "path": [
+            "repos",
+            "{{REPO_OWNER}}",
+            "{{REPO_NAME}}",
+            "pulls",
+            "{{pr_number}}",
+            "files"
+          ]
+        },
+        "description": "Get list of files changed in a specific pull request. Used for conflict detection."
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{GITHUB_TOKEN}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              },
+              {
+                "key": "X-GitHub-Api-Version",
+                "value": "2022-11-28"
+              }
+            ],
+            "url": {
+              "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls/42/files",
+              "protocol": "https",
+              "host": ["api", "github", "com"],
+              "path": [
+                "repos",
+                "{{REPO_OWNER}}",
+                "{{REPO_NAME}}",
+                "pulls",
+                "42",
+                "files"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "[\n  {\n    \"sha\": \"abc123\",\n    \"filename\": \"src/components/Settings.tsx\",\n    \"status\": \"modified\",\n    \"additions\": 25,\n    \"deletions\": 5,\n    \"changes\": 30,\n    \"patch\": \"@@ -10,7 +10,12 @@\\n export const Settings = () => {\\n+  const [darkMode, setDarkMode] = useState(false);\\n...\"\n  },\n  {\n    \"sha\": \"def456\",\n    \"filename\": \"src/styles/theme.ts\",\n    \"status\": \"modified\",\n    \"additions\": 15,\n    \"deletions\": 3,\n    \"changes\": 18,\n    \"patch\": \"@@ -5,6 +5,9 @@\\n export const theme = {\\n+  dark: {\\n+    background: '#1a1a1a',\\n+  }\\n...\"\n  },\n  {\n    \"sha\": \"ghi789\",\n    \"filename\": \"src/hooks/useDarkMode.ts\",\n    \"status\": \"added\",\n    \"additions\": 20,\n    \"deletions\": 0,\n    \"changes\": 20,\n    \"patch\": \"@@ -0,0 +1,20 @@\\n+export const useDarkMode = () => {\\n+  const [isDark, setIsDark] = useState(false);\\n...\"\n  }\n]"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "pr_number",
+      "value": "42",
+      "type": "string",
+      "description": "Pull request number to fetch files for"
+    }
+  ]
+}

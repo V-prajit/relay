@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "Ripgrep Search Module",
+    "_postman_id": "ripgrep-search-module-001",
+    "description": "Flow module for searching codebase using Ripgrep API. AI Agent can use this as a tool to find relevant files.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Search Codebase",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Log the search query for debugging",
+              "console.log('Searching for:', pm.variables.get('query'));",
+              "",
+              "// Set default path if not provided",
+              "if (!pm.variables.get('path')) {",
+              "    pm.variables.set('path', 'src/');",
+              "}",
+              "",
+              "// Set default type if not provided",
+              "if (!pm.variables.get('type')) {",
+              "    pm.variables.set('type', 'all');",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Validate response",
+              "pm.test('Search completed successfully', function() {",
+              "    pm.response.to.have.status(200);",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.success).to.be.true;",
+              "    pm.expect(json.data).to.be.an('object');",
+              "    pm.expect(json.data.files).to.be.an('array');",
+              "});",
+              "",
+              "// Store results for AI Agent",
+              "const response = pm.response.json();",
+              "pm.environment.set('ripgrep_files', JSON.stringify(response.data.files));",
+              "pm.environment.set('ripgrep_total', response.data.total);",
+              "pm.environment.set('ripgrep_is_new_feature', response.data.is_new_feature);",
+              "",
+              "// Log results",
+              "console.log('Found files:', response.data.total);",
+              "console.log('Is new feature:', response.data.is_new_feature);",
+              "",
+              "pm.test('Response time acceptable', function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"{{query}}\",\n  \"path\": \"{{path}}\",\n  \"type\": \"{{type}}\",\n  \"case_sensitive\": {{case_sensitive}}\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{RIPGREP_API_URL}}/api/search",
+          "host": ["{{RIPGREP_API_URL}}"],
+          "path": ["api", "search"]
+        },
+        "description": "Search codebase for files matching the query pattern. Returns list of matching files and whether this appears to be a new feature."
+      },
+      "response": [
+        {
+          "name": "Existing Feature Found",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"ProfileCard\",\n  \"path\": \"src/\",\n  \"type\": \"tsx\",\n  \"case_sensitive\": false\n}"
+            },
+            "url": {
+              "raw": "{{RIPGREP_API_URL}}/api/search",
+              "host": ["{{RIPGREP_API_URL}}"],
+              "path": ["api", "search"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"files\": [\n      \"src/components/ProfileCard.tsx\",\n      \"src/pages/UserProfile.tsx\"\n    ],\n    \"matches\": [\n      {\n        \"file\": \"src/components/ProfileCard.tsx\",\n        \"line\": 15,\n        \"column\": 13,\n        \"content\": \"export const ProfileCard = ({ user }) => {\",\n        \"match_text\": \"ProfileCard\"\n      }\n    ],\n    \"total\": 2,\n    \"is_new_feature\": false,\n    \"message\": \"Found existing files that may be related to this feature.\"\n  },\n  \"query\": {\n    \"pattern\": \"ProfileCard\",\n    \"path\": \"src/\",\n    \"type\": \"tsx\",\n    \"case_sensitive\": false\n  }\n}"
+        },
+        {
+          "name": "New Feature (No Files)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"oauth\",\n  \"path\": \"src/\",\n  \"type\": \"tsx\",\n  \"case_sensitive\": false\n}"
+            },
+            "url": {
+              "raw": "{{RIPGREP_API_URL}}/api/search",
+              "host": ["{{RIPGREP_API_URL}}"],
+              "path": ["api", "search"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"files\": [],\n    \"matches\": [],\n    \"total\": 0,\n    \"is_new_feature\": true,\n    \"message\": \"No existing files found - may be a new feature. Claude should create new files and suggest a file structure.\"\n  },\n  \"query\": {\n    \"pattern\": \"oauth\",\n    \"path\": \"src/\",\n    \"type\": \"tsx\",\n    \"case_sensitive\": false\n  }\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "query",
+      "value": "ProfileCard",
+      "type": "string",
+      "description": "Search pattern to find in codebase"
+    },
+    {
+      "key": "path",
+      "value": "src/",
+      "type": "string",
+      "description": "Directory path to search within"
+    },
+    {
+      "key": "type",
+      "value": "tsx",
+      "type": "string",
+      "description": "File type filter (tsx, js, py, etc.)"
+    },
+    {
+      "key": "case_sensitive",
+      "value": "false",
+      "type": "boolean",
+      "description": "Whether search should be case sensitive"
+    }
+  ]
+}

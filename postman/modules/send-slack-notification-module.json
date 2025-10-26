@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "Send Slack Notification Module",
+    "_postman_id": "send-slack-notification-module-001",
+    "description": "Flow module for sending rich notifications to Slack using Block Kit. Shows PR details, conflicts, and AI reasoning trace.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Send Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"blocks\": [\n    {\n      \"type\": \"header\",\n      \"text\": {\n        \"type\": \"plain_text\",\n        \"text\": \"✅ PR Created: {{feature_name}}\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*🧠 Agent Reasoning Trace:*\\n{{reasoning_summary}}\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*PR:*\\n#{{pr_number}}\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Files:*\\n{{file_count}}\"\n        }\n      ]\n    },\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"*Impacted Files:*\\n{{impacted_files_text}}\"\n      }\n    },\n    {\n      \"type\": \"actions\",\n      \"elements\": [\n        {\n          \"type\": \"button\",\n          \"text\": {\n            \"type\": \"plain_text\",\n            \"text\": \"View PR\"\n          },\n          \"url\": \"{{pr_url}}\",\n          \"style\": \"primary\"\n        }\n      ]\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{SLACK_WEBHOOK_PM}}",
+          "host": ["{{SLACK_WEBHOOK_PM}}"]
+        },
+        "description": "Send rich Block Kit notification to Slack with PR details, conflicts, and AI reasoning."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "feature_name",
+      "value": "ProfileCard",
+      "type": "string"
+    },
+    {
+      "key": "pr_number",
+      "value": "43",
+      "type": "string"
+    },
+    {
+      "key": "pr_url",
+      "value": "https://github.com/owner/repo/pull/43",
+      "type": "string"
+    },
+    {
+      "key": "reasoning_summary",
+      "value": "• Parsed intent\\n• Searched codebase\\n• Generated PR",
+      "type": "string"
+    },
+    {
+      "key": "file_count",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "impacted_files_text",
+      "value": "`src/components/ProfileCard.tsx`\\n`src/pages/UserProfile.tsx`",
+      "type": "string"
+    }
+  ]
+}

@@ -3,7 +3,11 @@
     "allow": [
       "Read(//c/Users/rabib/Downloads/**)",
       "Bash(git checkout:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(cat:*)",
+      "Bash(python -c:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

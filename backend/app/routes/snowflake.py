@@ -13,6 +13,7 @@ from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
 
 from app.services.snowflake_service import SnowflakeService
+from app.models.requests import GeneratePRRequest
 
 # Create router
 router = APIRouter(prefix="/snowflake", tags=["snowflake"])
@@ -399,6 +400,83 @@ async def get_analysis_history(
         "total": len(results),
         "analyses": results
     }
+
+
+# ==================== PR GENERATION (HYBRID AI) ====================
+
+@router.post("/generate-pr")
+async def generate_pr(request: GeneratePRRequest) -> Dict[str, Any]:
+    """
+    Generate PR content using Snowflake Cortex LLM.
+
+    This endpoint is called BY Postman AI Agent as a tool.
+    - AI Agent decides WHEN to call this (orchestration)
+    - Cortex decides WHAT code to generate (execution)
+
+    Example:
+    ```json
+    {
+      "feature_request": "fix mobile login responsive design",
+      "impacted_files": ["src/pages/Login.tsx"],
+      "is_new_feature": false,
+      "repo_name": "V-prajit/youareabsolutelyright",
+      "conflict_info": "Conflicts with PR #42 (1 file overlap)"
+    }
+    ```
+
+    Returns:
+    ```json
+    {
+      "success": true,
+      "pr_title": "fix: Mobile login responsive design",
+      "pr_description": "...",
+      "branch_name": "pm-copilot/fix-mobile-login-20251026-abc123",
+      "generated_by": "Snowflake Cortex (mistral-large)",
+      "execution_time_ms": 2500,
+      "hybrid_ai": {
+        "orchestrator": "Postman AI Agent (GPT-5)",
+        "generator": "Snowflake Cortex (Mistral-Large)"
+      }
+    }
+    ```
+    """
+    snowflake = SnowflakeService.get_instance()
+
+    if not snowflake.is_connected():
+        raise HTTPException(
+            status_code=503,
+            detail="Snowflake is not connected. Check ENABLE_SNOWFLAKE=true and credentials."
+        )
+
+    try:
+        result = snowflake.generate_pr_with_cortex(
+            feature_request=request.feature_request,
+            impacted_files=request.impacted_files,
+            is_new_feature=request.is_new_feature,
+            repo_name=request.repo_name,
+            conflict_info=request.conflict_info
+        )
+
+        return {
+            "success": True,
+            "pr_title": result["pr_title"],
+            "pr_description": result["pr_description"],
+            "branch_name": result["branch_name"],
+            "generated_by": result["generated_by"],
+            "execution_time_ms": result["execution_time_ms"],
+            "model": result["model"],
+            "hybrid_ai": {
+                "orchestrator": "Postman AI Agent (GPT-5)",
+                "generator": f"Snowflake Cortex ({result['model']})",
+                "architecture": "AI Agent orchestrates, Cortex executes"
+            }
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate PR with Cortex: {str(e)}"
+        )
 
 
 # ==================== ANALYTICS ====================

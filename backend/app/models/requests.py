@@ -119,3 +119,40 @@ class OCRAnalyzeRequest(BaseModel):
         description="GitHub repository URL to analyze",
         examples=["https://github.com/user/repo"]
     )
+
+
+class GeneratePRRequest(BaseModel):
+    """
+    Request model for generating PR content using Snowflake Cortex LLM.
+
+    Used by POST /api/snowflake/generate-pr endpoint.
+    This is called by Postman AI Agent as a tool.
+    """
+
+    feature_request: str = Field(
+        ...,
+        min_length=5,
+        description="The feature request from PM (natural language)",
+        examples=["fix mobile login responsive design", "add OAuth authentication"]
+    )
+    impacted_files: list[str] = Field(
+        default_factory=list,
+        description="List of files that will be modified (from Ripgrep search)",
+        examples=[["src/pages/Login.tsx", "src/components/Header.tsx"]]
+    )
+    is_new_feature: bool = Field(
+        default=False,
+        description="Whether this is a new feature (no existing files found)",
+        examples=[False]
+    )
+    repo_name: str = Field(
+        ...,
+        min_length=1,
+        description="Repository name (owner/repo format)",
+        examples=["V-prajit/youareabsolutelyright"]
+    )
+    conflict_info: Optional[str] = Field(
+        None,
+        description="Optional conflict information from PR analysis",
+        examples=["Conflicts with PR #42 (Settings.tsx overlap)"]
+    )

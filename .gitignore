@@ -1,4 +1,11 @@
 backend/.env
+.env
+*.env
+
+# Postman environments with secrets
+postman/environment.json
+postman/environments/*.json
+!postman/environments/dev-simple.json
 
 # Python
 __pycache__/

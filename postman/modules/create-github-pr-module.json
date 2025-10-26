@@ -1,0 +1,215 @@
+{
+  "info": {
+    "name": "Create GitHub PR Module",
+    "_postman_id": "create-github-pr-module-001",
+    "description": "Flow module for creating a pull request on GitHub. Used by AI Agent after generating PR content.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Pull Request",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Log the PR creation attempt",
+              "console.log('Creating PR:', pm.variables.get('pr_title'));",
+              "console.log('Branch:', pm.variables.get('branch_name'));",
+              "",
+              "// Validate required fields",
+              "const requiredVars = ['pr_title', 'pr_description', 'branch_name'];",
+              "requiredVars.forEach(varName => {",
+              "    if (!pm.variables.get(varName)) {",
+              "        throw new Error(`${varName} variable is required`);",
+              "    }",
+              "});",
+              "",
+              "// Add PM Copilot footer to description",
+              "const description = pm.variables.get('pr_description');",
+              "const enhancedDescription = description + '\\n\\n---\\n🤖 Generated with [PM Copilot](https://github.com/youareabsolutelyright)';",
+              "pm.variables.set('enhanced_pr_description', enhancedDescription);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Check if PR was created successfully",
+              "pm.test('PR created successfully', function() {",
+              "    // 201 = Created",
+              "    pm.response.to.have.status(201);",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.html_url).to.be.a('string');",
+              "    pm.expect(json.number).to.be.a('number');",
+              "});",
+              "",
+              "// Store PR details",
+              "const pr = pm.response.json();",
+              "pm.environment.set('created_pr_url', pr.html_url);",
+              "pm.environment.set('created_pr_number', pr.number);",
+              "pm.environment.set('created_pr_id', pr.id);",
+              "",
+              "// Log success",
+              "console.log('✅ PR created successfully!');",
+              "console.log('PR #' + pr.number + ':', pr.html_url);",
+              "",
+              "pm.test('PR has all required fields', function() {",
+              "    pm.expect(pr.title).to.exist;",
+              "    pm.expect(pr.body).to.exist;",
+              "    pm.expect(pr.head).to.exist;",
+              "    pm.expect(pr.base).to.exist;",
+              "});",
+              "",
+              "pm.test('Response time acceptable', function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{GITHUB_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/vnd.github+json",
+            "type": "text"
+          },
+          {
+            "key": "X-GitHub-Api-Version",
+            "value": "2022-11-28",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"{{pr_title}}\",\n  \"body\": \"{{enhanced_pr_description}}\",\n  \"head\": \"{{branch_name}}\",\n  \"base\": \"main\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls",
+          "protocol": "https",
+          "host": ["api", "github", "com"],
+          "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"]
+        },
+        "description": "Create a new pull request on GitHub. Note: The branch must already exist or you can use GitHub's draft PR feature."
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{GITHUB_TOKEN}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              },
+              {
+                "key": "X-GitHub-Api-Version",
+                "value": "2022-11-28"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Add ProfileCard component\",\n  \"body\": \"## Summary\\nAdds ProfileCard component\",\n  \"head\": \"feature/profile-card-2025-10-25-abc123\",\n  \"base\": \"main\"\n}"
+            },
+            "url": {
+              "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls",
+              "protocol": "https",
+              "host": ["api", "github", "com"],
+              "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"id\": 123456789,\n  \"number\": 43,\n  \"state\": \"open\",\n  \"title\": \"Add ProfileCard component to /users route\",\n  \"body\": \"## Summary\\nAdds new ProfileCard component to display user information.\\n\\n## Changes\\n- Created `ProfileCard.tsx` component\\n- Updated `/users` route to use ProfileCard\\n\\n## Acceptance Criteria\\n- [ ] ProfileCard displays user avatar and name\\n- [ ] /users route renders ProfileCard list\\n- [ ] Component has TypeScript types\\n\\n---\\n🤖 Generated with [PM Copilot](https://github.com/youareabsolutelyright)\",\n  \"html_url\": \"https://github.com/owner/repo/pull/43\",\n  \"created_at\": \"2025-10-25T14:30:00Z\",\n  \"updated_at\": \"2025-10-25T14:30:00Z\",\n  \"user\": {\n    \"login\": \"pm-copilot-bot\",\n    \"id\": 999999\n  },\n  \"head\": {\n    \"label\": \"owner:feature/profile-card-2025-10-25-abc123\",\n    \"ref\": \"feature/profile-card-2025-10-25-abc123\",\n    \"sha\": \"abc123def456\"\n  },\n  \"base\": {\n    \"label\": \"owner:main\",\n    \"ref\": \"main\",\n    \"sha\": \"main123456\"\n  },\n  \"merged\": false,\n  \"mergeable\": null,\n  \"draft\": false\n}"
+        },
+        {
+          "name": "Error - Branch doesn't exist",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{GITHUB_TOKEN}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test PR\",\n  \"body\": \"Description\",\n  \"head\": \"nonexistent-branch\",\n  \"base\": \"main\"\n}"
+            },
+            "url": {
+              "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls",
+              "protocol": "https",
+              "host": ["api", "github", "com"],
+              "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"]
+            }
+          },
+          "status": "Unprocessable Entity",
+          "code": 422,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"message\": \"Validation Failed\",\n  \"errors\": [\n    {\n      \"resource\": \"PullRequest\",\n      \"code\": \"invalid\",\n      \"field\": \"head\"\n    }\n  ],\n  \"documentation_url\": \"https://docs.github.com/rest/pulls/pulls#create-a-pull-request\"\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "pr_title",
+      "value": "Add ProfileCard component",
+      "type": "string",
+      "description": "PR title generated by Claude"
+    },
+    {
+      "key": "pr_description",
+      "value": "## Summary\\nAdds ProfileCard component",
+      "type": "string",
+      "description": "PR body/description (markdown formatted)"
+    },
+    {
+      "key": "branch_name",
+      "value": "feature/profile-card-2025-10-25-abc123",
+      "type": "string",
+      "description": "Branch name (must exist or use draft PR)"
+    }
+  ]
+}

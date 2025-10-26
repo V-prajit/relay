@@ -1,0 +1,79 @@
+{
+  "id": "pm-copilot-environment",
+  "name": "PM Copilot Environment",
+  "values": [
+    {
+      "key": "RIPGREP_API_URL",
+      "value": "http://localhost:3001",
+      "type": "default",
+      "enabled": true,
+      "description": "Ripgrep API endpoint (local: http://localhost:3001 or deployed URL)"
+    },
+    {
+      "key": "CLAUDE_API_KEY",
+      "value": "sk-ant-api03-YOUR_CLAUDE_API_KEY_HERE",
+      "type": "secret",
+      "enabled": true,
+      "description": "Anthropic Claude API key (get from https://console.anthropic.com/)"
+    },
+    {
+      "key": "GITHUB_TOKEN",
+      "value": "ghp_YOUR_GITHUB_TOKEN_HERE",
+      "type": "secret",
+      "enabled": true,
+      "description": "GitHub personal access token with 'repo' scope (create at https://github.com/settings/tokens)"
+    },
+    {
+      "key": "GITHUB_REPO_OWNER",
+      "value": "your-username",
+      "type": "default",
+      "enabled": true,
+      "description": "GitHub repository owner (username or organization)"
+    },
+    {
+      "key": "GITHUB_REPO_NAME",
+      "value": "your-repo-name",
+      "type": "default",
+      "enabled": true,
+      "description": "GitHub repository name"
+    },
+    {
+      "key": "SLACK_WEBHOOK_PM",
+      "value": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+      "type": "secret",
+      "enabled": true,
+      "description": "Slack incoming webhook URL for PM notifications (create at https://api.slack.com/apps)"
+    },
+    {
+      "key": "SLACK_WEBHOOK_ENG",
+      "value": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+      "type": "secret",
+      "enabled": true,
+      "description": "Slack incoming webhook URL for engineer notifications (can be same as PM webhook)"
+    },
+    {
+      "key": "SNOWFLAKE_API_URL",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true,
+      "description": "Backend API URL for Snowflake Cortex integration"
+    },
+    {
+      "key": "ACTION_PUBLIC_URL",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "Postman Action public URL (generated after deploying flow)"
+    },
+    {
+      "key": "DEFAULT_BRANCH",
+      "value": "main",
+      "type": "default",
+      "enabled": true,
+      "description": "Default base branch for PRs"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2025-10-26T12:00:00.000Z",
+  "_postman_exported_using": "Postman/11.42.3"
+}

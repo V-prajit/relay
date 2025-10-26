@@ -1,0 +1,94 @@
+{
+  "info": {
+    "name": "Claude API",
+    "_postman_id": "claude-api-001",
+    "description": "Anthropic Claude API for PR generation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Generate PR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{CLAUDE_API_KEY}}",
+            "type": "text"
+          },
+          {
+            "key": "anthropic-version",
+            "value": "2023-06-01",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"max_tokens\": 4000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are a senior engineer. Generate a ≤30-line PR patch that adds ProfileCard component to /users route.\\n\\nImpacted files:\\n- src/components/ProfileCard.tsx\\n- src/pages/users.tsx\\n\\nUse TypeScript and React 19.\\n\\nProvide:\\n1. PR title\\n2. PR description\\n3. Code changes\\n4. Acceptance criteria (3-5 bullets)\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "https://api.anthropic.com/v1/messages",
+          "protocol": "https",
+          "host": ["api", "anthropic", "com"],
+          "path": ["v1", "messages"]
+        },
+        "description": "Generate PR content using Claude"
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{CLAUDE_API_KEY}}"
+              },
+              {
+                "key": "anthropic-version",
+                "value": "2023-06-01"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"max_tokens\": 4000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate PR for ProfileCard feature\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "https://api.anthropic.com/v1/messages",
+              "protocol": "https",
+              "host": ["api", "anthropic", "com"],
+              "path": ["v1", "messages"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": \"msg_01234567890\",\n  \"type\": \"message\",\n  \"role\": \"assistant\",\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"# Add ProfileCard component to /users route\\n\\n## Summary\\nAdds a new ProfileCard component to display user information on the /users page.\\n\\n## Changes\\n```tsx\\n// src/components/ProfileCard.tsx\\nexport interface ProfileCardProps {\\n  user: {\\n    id: string;\\n    name: string;\\n    avatar: string;\\n  };\\n}\\n\\nexport const ProfileCard = ({ user }: ProfileCardProps) => {\\n  return (\\n    <div className=\\\"profile-card\\\">\\n      <img src={user.avatar} alt={user.name} />\\n      <h3>{user.name}</h3>\\n    </div>\\n  );\\n};\\n\\n// src/pages/users.tsx\\nimport { ProfileCard } from '@/components/ProfileCard';\\n\\nexport default function UsersPage() {\\n  const users = useUsers();\\n  \\n  return (\\n    <div>\\n      {users.map(user => (\\n        <ProfileCard key={user.id} user={user} />\\n      ))}\\n    </div>\\n  );\\n}\\n```\\n\\n## Acceptance Criteria\\n- ProfileCard component displays user avatar and name\\n- /users route renders list of ProfileCard components\\n- Component is typed with TypeScript\\n- Snapshot tests pass\\n- Accessible markup (alt text, semantic HTML)\"\n    }\n  ],\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"stop_reason\": \"end_turn\",\n  \"usage\": {\n    \"input_tokens\": 150,\n    \"output_tokens\": 380\n  }\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "CLAUDE_API_KEY",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

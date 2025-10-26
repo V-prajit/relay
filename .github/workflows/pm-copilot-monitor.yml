@@ -1,0 +1,302 @@
+name: PM Copilot Health Monitor
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+env:
+  NODE_VERSION: '18'
+  NEWMAN_VERSION: 'latest'
+
+jobs:
+  health-check:
+    name: Run Health Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install Newman and reporters
+        run: |
+          npm install -g newman@${{ env.NEWMAN_VERSION }}
+          npm install -g newman-reporter-htmlextra
+          npm install -g newman-reporter-json-summary
+          echo "Newman version: $(newman --version)"
+
+      - name: Create reports directory
+        run: mkdir -p ./reports
+
+      - name: Run Health Check Collection
+        id: health-check
+        continue-on-error: true
+        run: |
+          newman run postman/collections/pm-copilot-health-check.json \
+            --environment postman/environments/production.json \
+            --env-var "ACTION_URL=${{ secrets.ACTION_URL || vars.ACTION_URL }}" \
+            --env-var "SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}" \
+            --reporters cli,htmlextra,json-summary \
+            --reporter-htmlextra-export ./reports/health-check-report.html \
+            --reporter-htmlextra-title "PM Copilot Health Report" \
+            --reporter-htmlextra-darkTheme \
+            --reporter-htmlextra-testPaginationSize 10 \
+            --reporter-json-summary-export ./reports/summary.json \
+            --suppress-exit-code
+
+      - name: Parse test results
+        id: parse-results
+        if: always()
+        run: |
+          if [ -f ./reports/summary.json ]; then
+            TOTAL=$(jq '.run.stats.tests.total' ./reports/summary.json)
+            FAILED=$(jq '.run.stats.tests.failed' ./reports/summary.json)
+            PASSED=$((TOTAL - FAILED))
+            SUCCESS_RATE=$(echo "scale=2; $PASSED * 100 / $TOTAL" | bc)
+
+            echo "total_tests=$TOTAL" >> $GITHUB_OUTPUT
+            echo "passed_tests=$PASSED" >> $GITHUB_OUTPUT
+            echo "failed_tests=$FAILED" >> $GITHUB_OUTPUT
+            echo "success_rate=$SUCCESS_RATE" >> $GITHUB_OUTPUT
+
+            if [ "$FAILED" -gt 0 ]; then
+              echo "status=failed" >> $GITHUB_OUTPUT
+            else
+              echo "status=passed" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "status=error" >> $GITHUB_OUTPUT
+            echo "total_tests=0" >> $GITHUB_OUTPUT
+            echo "passed_tests=0" >> $GITHUB_OUTPUT
+            echo "failed_tests=0" >> $GITHUB_OUTPUT
+            echo "success_rate=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-health-report-${{ github.run_number }}
+          path: ./reports/health-check-report.html
+          retention-days: 30
+
+      - name: Upload JSON Summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-summary-${{ github.run_number }}
+          path: ./reports/summary.json
+          retention-days: 7
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.parse-results.outputs.status }}';
+            const total = '${{ steps.parse-results.outputs.total_tests }}';
+            const passed = '${{ steps.parse-results.outputs.passed_tests }}';
+            const failed = '${{ steps.parse-results.outputs.failed_tests }}';
+            const rate = '${{ steps.parse-results.outputs.success_rate }}';
+
+            const statusText = status === 'passed' ? 'PASSED' : 'FAILED';
+
+            const comment = `## PM Copilot Health Check ${statusText}
+
+            Test Results:
+            - Total Tests: ${total}
+            - Passed: ${passed}
+            - Failed: ${failed}
+            - Success Rate: ${rate}%
+
+            Report: [Download HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            Generated at: ${new Date().toISOString()}`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+      - name: Create GitHub Issue on Failure
+        if: steps.parse-results.outputs.status == 'failed' && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failed = '${{ steps.parse-results.outputs.failed_tests }}';
+            const total = '${{ steps.parse-results.outputs.total_tests }}';
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `PM Copilot Health Check Failed - ${failed}/${total} tests failing`,
+              body: `## Health Check Failure Alert
+
+              The scheduled health check has detected failures in the PM Copilot service.
+
+              Details:
+              - Run ID: ${{ github.run_id }}
+              - Failed Tests: ${failed}
+              - Total Tests: ${total}
+              - Timestamp: ${new Date().toISOString()}
+
+              Action Required:
+              1. Check the [workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+              2. Download and review the HTML report
+              3. Check service logs for errors
+              4. Verify all API dependencies are operational
+
+              cc: @devops-team`,
+              labels: ['bug', 'health-check', 'priority-high']
+            });
+
+      - name: Notify Slack on Success
+        if: success() && steps.parse-results.outputs.status == 'passed'
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "PM Copilot health check PASSED",
+                "blocks": [
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*PM Copilot Health Check Passed*\nTests: ${{ steps.parse-results.outputs.passed_tests }}/${{ steps.parse-results.outputs.total_tests }}\nSuccess Rate: ${{ steps.parse-results.outputs.success_rate }}%\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+                    }
+                  }
+                ]
+              }'
+          fi
+
+      - name: Notify Slack on Failure
+        if: failure() || steps.parse-results.outputs.status == 'failed'
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]; then
+            curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "PM Copilot health check FAILED",
+                "blocks": [
+                  {
+                    "type": "header",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "PM Copilot Health Check Failed"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "Test Results:\nFailed: ${{ steps.parse-results.outputs.failed_tests }}/${{ steps.parse-results.outputs.total_tests }}\nSuccess Rate: ${{ steps.parse-results.outputs.success_rate }}%\nRun: #${{ github.run_number }}"
+                    }
+                  },
+                  {
+                    "type": "actions",
+                    "elements": [
+                      {
+                        "type": "button",
+                        "text": {
+                          "type": "plain_text",
+                          "text": "View Workflow"
+                        },
+                        "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                      }
+                    ]
+                  }
+                ]
+              }'
+          fi
+
+      - name: Update status badge
+        if: always()
+        run: |
+          STATUS="${{ steps.parse-results.outputs.status }}"
+          echo "Health check status: $STATUS"
+          # This would typically update a status badge in your README
+          # For now, we'll just log it
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Run Performance Tests
+        continue-on-error: true
+        run: |
+          # Run the health check collection 5 times to measure performance
+          for i in {1..5}; do
+            newman run postman/collections/pm-copilot-health-check.json \
+              --environment postman/environments/production.json \
+              --env-var "ACTION_URL=${{ secrets.ACTION_URL || vars.ACTION_URL }}" \
+              --reporters cli,json \
+              --reporter-json-export ./reports/perf-run-$i.json
+            sleep 2
+          done
+
+      - name: Analyze Performance
+        run: |
+          echo "## Performance Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Run | Response Time | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|---------------|--------|" >> $GITHUB_STEP_SUMMARY
+
+          for i in {1..5}; do
+            if [ -f ./reports/perf-run-$i.json ]; then
+              TIME=$(jq '.run.timings.responseAverage' ./reports/perf-run-$i.json)
+              echo "| Run $i | ${TIME}ms | ✅ |" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+  deploy-monitor:
+    name: Deploy Monitor Configuration
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: health-check
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Postman Monitor
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+        run: |
+          echo "Deploying monitor configuration to Postman..."
+          # This would use Postman API to update monitor configuration
+          # For now, we'll just log the action
+          echo "Monitor configuration would be deployed here"
+          echo "Schedule: Every 5 minutes"
+          echo "Environment: Production"

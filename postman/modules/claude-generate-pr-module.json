@@ -1,0 +1,210 @@
+{
+  "info": {
+    "name": "Claude Generate PR Module",
+    "_postman_id": "claude-generate-pr-module-001",
+    "description": "Flow module for generating PR content using Claude AI. Creates PR title, description, code changes, and acceptance criteria.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Generate PR Content",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// Generate unique branch name",
+              "const timestamp = new Date().toISOString().split('T')[0];",
+              "const guid = pm.variables.replaceIn('{{$guid}}').slice(0, 8);",
+              "const featureName = (pm.variables.get('feature_name') || 'feature').replace(/\\s+/g, '-').toLowerCase();",
+              "",
+              "const branchName = `feature/${featureName}-${timestamp}-${guid}`;",
+              "pm.variables.set('branch_name', branchName);",
+              "",
+              "console.log('Generated branch name:', branchName);",
+              "",
+              "// Build the enhanced prompt",
+              "const featureRequest = pm.variables.get('feature_request');",
+              "const impactedFiles = pm.variables.get('impacted_files') || '[]';",
+              "const isNewFeature = pm.variables.get('is_new_feature') === 'true';",
+              "const conflictInfo = pm.variables.get('conflict_info') || 'No conflicts detected';",
+              "",
+              "const prompt = `You are a senior engineer working on a codebase.",
+              "",
+              "Feature Request: ${featureRequest}",
+              "",
+              "Impacted Files: ${impactedFiles}",
+              "Is New Feature: ${isNewFeature}",
+              "Conflict Information: ${conflictInfo}",
+              "",
+              "IMPORTANT INSTRUCTIONS:",
+              "- If this is a NEW FEATURE (no files found), create new files and suggest a file structure",
+              "- If files were found, modify those existing files with a ≤30-line patch",
+              "- Consider the conflict information when generating changes",
+              "",
+              "Provide:",
+              "1. PR Title (clear and concise)",
+              "2. PR Description (markdown formatted)",
+              "3. Code changes or new file structure",
+              "4. Acceptance criteria (3-5 bullet points)",
+              "",
+              "Use TypeScript and React 19. Keep total changes ≤30 lines.`;",
+              "",
+              "pm.variables.set('claude_prompt', prompt);"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Validate response",
+              "pm.test('Claude generated PR content', function() {",
+              "    pm.response.to.have.status(200);",
+              "    const json = pm.response.json();",
+              "    pm.expect(json.content).to.be.an('array');",
+              "    pm.expect(json.content[0].text).to.be.a('string');",
+              "    pm.expect(json.content[0].text.length).to.be.above(50);",
+              "});",
+              "",
+              "// Parse Claude's response",
+              "const response = pm.response.json();",
+              "const prContent = response.content[0].text;",
+              "",
+              "// Extract sections using regex (Claude typically formats with # headers)",
+              "const extractSection = (content, sectionName) => {",
+              "    const regex = new RegExp(`##?\\\\s*${sectionName}[\\\\s\\\\S]*?(?=##|$)`, 'i');",
+              "    const match = content.match(regex);",
+              "    return match ? match[0].replace(new RegExp(`##?\\\\s*${sectionName}\\\\s*`, 'i'), '').trim() : '';",
+              "};",
+              "",
+              "// Store parsed content",
+              "pm.environment.set('pr_title', extractSection(prContent, 'PR:?\\\\s*Title|Title') || 'Auto-generated PR');",
+              "pm.environment.set('pr_description', prContent);",
+              "pm.environment.set('pr_full_content', prContent);",
+              "",
+              "console.log('PR content generated successfully');",
+              "console.log('Estimated length:', prContent.length, 'characters');",
+              "",
+              "pm.test('Response time acceptable', function() {",
+              "    pm.expect(pm.response.responseTime).to.be.below(15000);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "{{CLAUDE_API_KEY}}",
+            "type": "text"
+          },
+          {
+            "key": "anthropic-version",
+            "value": "2023-06-01",
+            "type": "text"
+          },
+          {
+            "key": "content-type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"max_tokens\": 4000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{claude_prompt}}\"\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://api.anthropic.com/v1/messages",
+          "protocol": "https",
+          "host": ["api", "anthropic", "com"],
+          "path": ["v1", "messages"]
+        },
+        "description": "Generate PR content using Claude AI based on feature request and impacted files."
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{CLAUDE_API_KEY}}"
+              },
+              {
+                "key": "anthropic-version",
+                "value": "2023-06-01"
+              },
+              {
+                "key": "content-type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"max_tokens\": 4000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate a PR for adding ProfileCard component\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "https://api.anthropic.com/v1/messages",
+              "protocol": "https",
+              "host": ["api", "anthropic", "com"],
+              "path": ["v1", "messages"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"id\": \"msg_123abc\",\n  \"type\": \"message\",\n  \"role\": \"assistant\",\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"# PR: Add ProfileCard Component to /users Route\\n\\n## Summary\\nAdds new ProfileCard component to display user information on the /users route.\\n\\n## Changes\\n```tsx\\n// src/components/ProfileCard.tsx\\nimport React from 'react';\\n\\ninterface ProfileCardProps {\\n  user: {\\n    name: string;\\n    avatar: string;\\n    role: string;\\n  };\\n}\\n\\nexport const ProfileCard: React.FC<ProfileCardProps> = ({ user }) => {\\n  return (\\n    <div className=\\\"profile-card\\\">\\n      <img src={user.avatar} alt={user.name} />\\n      <h3>{user.name}</h3>\\n      <p>{user.role}</p>\\n    </div>\\n  );\\n};\\n```\\n\\n```tsx\\n// src/pages/users.tsx (update)\\nimport { ProfileCard } from '@/components/ProfileCard';\\n\\n// Add to existing component:\\n<ProfileCard user={user} />\\n```\\n\\n## Acceptance Criteria\\n- [ ] ProfileCard displays user avatar, name, and role\\n- [ ] /users route renders ProfileCard for each user\\n- [ ] Component has TypeScript types\\n- [ ] Accessible markup (alt text, semantic HTML)\\n- [ ] Snapshot tests added\"\n    }\n  ],\n  \"model\": \"claude-sonnet-4.5-20250929\",\n  \"stop_reason\": \"end_turn\",\n  \"usage\": {\n    \"input_tokens\": 125,\n    \"output_tokens\": 387\n  }\n}"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "feature_request",
+      "value": "Add ProfileCard to /users",
+      "type": "string",
+      "description": "The feature request from the PM"
+    },
+    {
+      "key": "impacted_files",
+      "value": "[\"src/components/ProfileCard.tsx\", \"src/pages/users.tsx\"]",
+      "type": "string",
+      "description": "JSON array of impacted files from Ripgrep"
+    },
+    {
+      "key": "is_new_feature",
+      "value": "false",
+      "type": "string",
+      "description": "Whether this is a new feature (no existing files)"
+    },
+    {
+      "key": "conflict_info",
+      "value": "No conflicts detected",
+      "type": "string",
+      "description": "Information about any detected conflicts"
+    },
+    {
+      "key": "feature_name",
+      "value": "profile-card",
+      "type": "string",
+      "description": "Feature name for branch generation"
+    }
+  ]
+}

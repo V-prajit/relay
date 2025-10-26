@@ -1,0 +1,101 @@
+{
+  "info": {
+    "name": "Ripgrep API",
+    "_postman_id": "ripgrep-api-001",
+    "description": "Code search API for PM Copilot",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Search Code",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"ProfileCard\",\n  \"path\": \"src/\",\n  \"type\": \"tsx\",\n  \"case_sensitive\": false\n}"
+        },
+        "url": {
+          "raw": "{{RIPGREP_API_URL}}/api/search",
+          "host": ["{{RIPGREP_API_URL}}"],
+          "path": ["api", "search"]
+        },
+        "description": "Search codebase for pattern"
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"query\": \"ProfileCard\",\n  \"path\": \"src/\",\n  \"type\": \"tsx\"\n}"
+            },
+            "url": {
+              "raw": "{{RIPGREP_API_URL}}/api/search",
+              "host": ["{{RIPGREP_API_URL}}"],
+              "path": ["api", "search"]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"files\": [\n      \"src/components/ProfileCard.tsx\",\n      \"src/pages/UserProfile.tsx\"\n    ],\n    \"matches\": [\n      {\n        \"file\": \"src/components/ProfileCard.tsx\",\n        \"line\": 15,\n        \"column\": 13,\n        \"content\": \"export const ProfileCard = ({ user }) => {\",\n        \"match_text\": \"ProfileCard\"\n      },\n      {\n        \"file\": \"src/pages/UserProfile.tsx\",\n        \"line\": 8,\n        \"column\": 9,\n        \"content\": \"import { ProfileCard } from '@/components/ProfileCard';\",\n        \"match_text\": \"ProfileCard\"\n      }\n    ],\n    \"total\": 2\n  },\n  \"query\": {\n    \"pattern\": \"ProfileCard\",\n    \"path\": \"src/\",\n    \"type\": \"tsx\",\n    \"case_sensitive\": false\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Supported Types",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{RIPGREP_API_URL}}/api/types",
+          "host": ["{{RIPGREP_API_URL}}"],
+          "path": ["api", "types"]
+        },
+        "description": "Get list of supported file types"
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{RIPGREP_API_URL}}/api/health",
+          "host": ["{{RIPGREP_API_URL}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Check API health status"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "RIPGREP_API_URL",
+      "value": "http://localhost:3001",
+      "type": "string"
+    }
+  ]
+}

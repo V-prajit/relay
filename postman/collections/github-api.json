@@ -1,0 +1,177 @@
+{
+  "info": {
+    "name": "GitHub API",
+    "_postman_id": "github-api-001",
+    "description": "GitHub REST API for PR creation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Pull Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{GITHUB_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/vnd.github+json",
+            "type": "text"
+          },
+          {
+            "key": "X-GitHub-Api-Version",
+            "value": "2022-11-28",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Add ProfileCard component to /users route\",\n  \"body\": \"## Summary\\nAdds new ProfileCard component to display user information.\\n\\n## Changes\\n- Created `ProfileCard.tsx` component\\n- Updated `/users` route to use ProfileCard\\n- Added TypeScript types\\n\\n## Acceptance Criteria\\n- [ ] ProfileCard displays user avatar and name\\n- [ ] /users route renders ProfileCard list\\n- [ ] Component has TypeScript types\\n- [ ] Snapshot tests pass\\n- [ ] Accessible markup\\n\\n## Impacted Files\\n- `src/components/ProfileCard.tsx`\\n- `src/pages/users.tsx`\\n\\n---\\n🤖 Generated with [PM Copilot](https://github.com/yourusername/youareabsolutelyright)\",\n  \"head\": \"feature/profile-card\",\n  \"base\": \"main\"\n}"
+        },
+        "url": {
+          "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls",
+          "protocol": "https",
+          "host": ["api", "github", "com"],
+          "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"]
+        },
+        "description": "Create a new pull request"
+      },
+      "response": [
+        {
+          "name": "Success Example",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{GITHUB_TOKEN}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/vnd.github+json"
+              },
+              {
+                "key": "X-GitHub-Api-Version",
+                "value": "2022-11-28"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Add ProfileCard\",\n  \"body\": \"PR description\",\n  \"head\": \"feature/profile-card\",\n  \"base\": \"main\"\n}"
+            },
+            "url": {
+              "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls",
+              "protocol": "https",
+              "host": ["api", "github", "com"],
+              "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n  \"id\": 123456789,\n  \"number\": 42,\n  \"state\": \"open\",\n  \"title\": \"Add ProfileCard component to /users route\",\n  \"body\": \"## Summary\\nAdds new ProfileCard component...\",\n  \"html_url\": \"https://github.com/owner/repo/pull/42\",\n  \"created_at\": \"2025-10-25T12:00:00Z\",\n  \"updated_at\": \"2025-10-25T12:00:00Z\",\n  \"head\": {\n    \"label\": \"owner:feature/profile-card\",\n    \"ref\": \"feature/profile-card\"\n  },\n  \"base\": {\n    \"label\": \"owner:main\",\n    \"ref\": \"main\"\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Pull Request",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{GITHUB_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/vnd.github+json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls/:pull_number",
+          "protocol": "https",
+          "host": ["api", "github", "com"],
+          "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls", ":pull_number"],
+          "variable": [
+            {
+              "key": "pull_number",
+              "value": "42"
+            }
+          ]
+        },
+        "description": "Get details of a specific pull request"
+      },
+      "response": []
+    },
+    {
+      "name": "List Pull Requests",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{GITHUB_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/vnd.github+json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://api.github.com/repos/{{REPO_OWNER}}/{{REPO_NAME}}/pulls?state=open",
+          "protocol": "https",
+          "host": ["api", "github", "com"],
+          "path": ["repos", "{{REPO_OWNER}}", "{{REPO_NAME}}", "pulls"],
+          "query": [
+            {
+              "key": "state",
+              "value": "open"
+            }
+          ]
+        },
+        "description": "List pull requests in the repository"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "GITHUB_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REPO_OWNER",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REPO_NAME",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
