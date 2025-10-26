@@ -1,0 +1,117 @@
+{
+  "name": "PM Copilot",
+  "version": "1.0.0",
+  "description": "AI-Powered PM to PR automation tool that transforms vague product specifications into actionable GitHub PRs",
+  "author": "PM Copilot Team",
+  "license": "MIT",
+  "type": "http",
+  "endpoint": {
+    "url": "https://flows-action.postman.com/YOUR_ACTION_ID_HERE",
+    "method": "POST",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  },
+  "tools": [
+    {
+      "name": "create_pr_from_spec",
+      "description": "Transform a product specification into a GitHub pull request with conflict detection and engineer routing",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The product feature request or specification in natural language"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "The GitHub username or Slack handle of the requesting user (e.g., @username)"
+          }
+        },
+        "required": ["text"]
+      }
+    },
+    {
+      "name": "check_pr_conflicts",
+      "description": "Check if a proposed feature has conflicts with existing PRs",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "feature_name": {
+            "type": "string",
+            "description": "Name or description of the feature to check"
+          },
+          "target_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of files that would be modified"
+          }
+        },
+        "required": ["feature_name"]
+      }
+    },
+    {
+      "name": "get_team_availability",
+      "description": "Get current availability of engineering team members",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "skill_required": {
+            "type": "string",
+            "enum": ["frontend", "backend", "fullstack", "devops", "any"],
+            "description": "The type of engineering skill needed"
+          }
+        }
+      }
+    }
+  ],
+  "configuration": {
+    "timeout": 30000,
+    "retries": 3,
+    "rate_limit": {
+      "requests_per_minute": 60,
+      "burst_size": 10
+    },
+    "authentication": {
+      "type": "api_key",
+      "location": "header",
+      "name": "X-API-Key",
+      "required": false
+    }
+  },
+  "health_check": {
+    "endpoint": "/health",
+    "expected_status": 200,
+    "check_interval": 300
+  },
+  "metadata": {
+    "categories": ["automation", "github", "project-management", "ai"],
+    "tags": ["postman", "flows", "hackathon", "pm-copilot"],
+    "documentation_url": "https://github.com/yourusername/pm-copilot/docs",
+    "support_email": "support@pmcopilot.tech"
+  },
+  "example_usage": {
+    "request": {
+      "text": "Add dark mode toggle to settings page",
+      "user_id": "@alice"
+    },
+    "response": {
+      "success": true,
+      "pr_url": "https://github.com/owner/repo/pull/123",
+      "pr_number": 123,
+      "impacted_files": [
+        "src/components/Settings.tsx",
+        "src/styles/theme.css"
+      ],
+      "conflicts_detected": 2,
+      "assigned_engineer": "@bob",
+      "acceptance_criteria": [
+        "Toggle switch appears in settings",
+        "Theme persists across sessions",
+        "All components respect theme choice"
+      ]
+    }
+  }
+}

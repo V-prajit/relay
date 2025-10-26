@@ -1,0 +1,25 @@
+{
+  "name": "PM-Copilot-Dev",
+  "values": [
+    {
+      "key": "ACTION_URL",
+      "value": "http://localhost:3001",
+      "enabled": true
+    },
+    {
+      "key": "REPO_OWNER",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "GITHUB_TOKEN",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "SLACK_WEBHOOK_URL",
+      "value": "",
+      "enabled": true
+    }
+  ]
+}

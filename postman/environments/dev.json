@@ -1,0 +1,103 @@
+{
+  "name": "PM Copilot Development",
+  "values": [
+    {
+      "key": "ACTION_URL",
+      "value": "http://localhost:3001",
+      "type": "default",
+      "enabled": true,
+      "description": "Ripgrep API URL for testing"
+    },
+    {
+      "key": "CLAUDE_API_KEY",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Leave empty, will read from .env file"
+    },
+    {
+      "key": "GITHUB_TOKEN",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Leave empty, will read from .env file"
+    },
+    {
+      "key": "SLACK_WEBHOOK_URL",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Leave empty, will read from .env file"
+    },
+    {
+      "key": "SLACK_WEBHOOK_PM",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
+    },
+    {
+      "key": "SLACK_WEBHOOK_ENG",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Optional - same as SLACK_WEBHOOK_URL"
+    },
+    {
+      "key": "REPO_OWNER",
+      "value": "",
+      "type": "default",
+      "enabled": true,
+      "description": "Your GitHub username"
+    },
+    {
+      "key": "REPO_NAME",
+      "value": "youareabsolutelyright",
+      "type": "default",
+      "enabled": true,
+      "description": "This repository name"
+    },
+    {
+      "key": "GOOGLE_CALENDAR_API_KEY",
+      "value": "",
+      "type": "secret",
+      "enabled": true,
+      "description": "Optional - not needed for basic testing"
+    },
+    {
+      "key": "RIPGREP_API_URL",
+      "value": "http://localhost:3001",
+      "type": "default",
+      "enabled": true,
+      "description": "Local Ripgrep API endpoint URL"
+    },
+    {
+      "key": "MAX_PR_SIZE",
+      "value": "30",
+      "type": "default",
+      "enabled": true,
+      "description": "Maximum lines for PR changes"
+    },
+    {
+      "key": "MONITOR_INTERVAL",
+      "value": "1",
+      "type": "default",
+      "enabled": true,
+      "description": "Health check interval in minutes (faster for dev)"
+    },
+    {
+      "key": "ENVIRONMENT",
+      "value": "development",
+      "type": "default",
+      "enabled": true,
+      "description": "Current environment name"
+    },
+    {
+      "key": "DEBUG_MODE",
+      "value": "true",
+      "type": "default",
+      "enabled": true,
+      "description": "Enable debug logging"
+    }
+  ]
+}
