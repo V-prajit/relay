@@ -1,5 +1,6 @@
 import express from 'express';
 import { search, getSupportedTypes } from '../services/ripgrep.js';
+import { getRepoPath, pullLatestChanges, getRepoInfo } from '../services/git.js';
 
 const router = express.Router();
 
@@ -37,9 +38,12 @@ router.post('/search', async (req, res) => {
       });
     }
 
-    // Execute search
+    // Execute search in cloned repository
+    const repoPath = getRepoPath();
+    const searchPath = path ? `${repoPath}/${path}` : repoPath;
+
     const results = await search(query, {
-      path: path || process.env.DEFAULT_SEARCH_PATH || './',
+      path: searchPath,
       type,
       case_sensitive: case_sensitive || false,
       max_results: parseInt(process.env.MAX_SEARCH_RESULTS || '50', 10),
@@ -103,14 +107,55 @@ router.get('/types', async (req, res) => {
 
 /**
  * GET /health
- * Health check endpoint
+ * Health check endpoint with repository status
  */
-router.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-  });
+router.get('/health', async (req, res) => {
+  try {
+    const repoInfo = await getRepoInfo();
+
+    res.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      repository: repoInfo,
+    });
+  } catch (error) {
+    res.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      repository: {
+        error: error.message,
+      },
+    });
+  }
+});
+
+/**
+ * POST /sync
+ * Manually trigger repository sync (pull latest changes)
+ */
+router.post('/sync', async (req, res) => {
+  try {
+    console.log('📥 Manual sync requested...');
+    const result = await pullLatestChanges();
+
+    const repoInfo = await getRepoInfo();
+
+    res.json({
+      success: true,
+      synced: result,
+      message: result ? 'Repository synced successfully' : 'Sync failed',
+      repository: repoInfo,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Sync error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 });
 
 export default router;
