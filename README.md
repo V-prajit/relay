@@ -1,132 +1,110 @@
-# You Are Absolutely Right
+# Relay
 
-**PM Copilot** - Transform vague PM specs into actionable GitHub PRs in 30 seconds, all from a single Slack command.
-
----
-
-## The Problem
-
-**PM says**: "Add dark mode toggle to settings"
-
-**What happens next** (traditional workflow):
-- 20 min: Engineer asks clarifying questions
-- 15 min: Searching codebase for relevant files
-- 30 min: Drafting PR with acceptance criteria
-- 10 min: Checking for conflicts with open PRs
-
-**Total**: 75 minutes of manual work for a simple feature request.
+**PM Copilot** - Transform vague PM specs into actionable GitHub PRs and issues through intelligent workflow automation.
 
 ---
 
-## Our Solution
+## Inspiration
 
-Automate the entire PM→Engineer handoff using **Postman Flows orchestration** + **AI-powered code generation**.
+Our project solves a real problem that we, SWE interns to PMs face: vague product requirements and incompatible interpretations. Engineers have to decode and figure out:
 
-```
-Slack: /impact "Add dark mode toggle"
-    ↓ (30 seconds)
-GitHub: PR #43 created ✓
-```
-
----
-
-## How It Works
-
-1. **PM types in Slack**: `/impact "Add dark mode toggle to settings"`
-2. **Postman AI Agent** orchestrates the workflow autonomously
-3. **Ripgrep API** searches codebase for relevant files
-4. **AI checks open PRs** for potential conflicts
-5. **Claude API** generates PR with code + acceptance criteria
-6. **GitHub API** creates pull request
-7. **Slack** notifies team with reasoning trace
-
-**Result**: Complete GitHub PR in 30 seconds with full context.
+- Clarifying requirements back and forth
+- Searching which files to change
+- Writing acceptance criteria
+- Creating boring boilerplate PRs
 
 ---
 
-## Demo
+## What It Does
 
-### Live Example
+This is how our Agent System works:
 
-**Input** (in Slack):
-```
-/impact "Fix mobile login responsive design"
-```
+1. **PM in Slack**: "Fix React version issue"
+2. **Postman AI Agent** processes the request
+3. **Ripgrep** finds relevant code files (Settings.tsx, theme.ts)
+4. **Snowflake Cortex AI** generates PR code (≤30 lines)
+5. **GitHub PR** created automatically
+6. **Slack** notifies team with reasoning trace
+7. **Dashboard** shows history and the current usage of current PRs and Snowflake in general
 
-**Output** (30 seconds later):
-```
-✅ PR Created: fix-mobile-login-responsive
-
-Feature Request: Fix mobile login responsive design
-Files Impacted: 2
-  - src/pages/Login.tsx
-  - src/styles/mobile.css
-
-Conflict Check: ✓ No conflicts with open PRs
-
-Reasoning Trace:
-  1. Parsed intent: mobile-login-fix
-  2. Searched codebase: found 2 files
-  3. Scanned 3 open PRs
-  4. No conflicts detected
-  5. Generated PR content with Claude
-  6. Created GitHub PR #45
-  7. Sent notification to Slack
-
-[View PR] [View Files]
-```
-
-**GitHub PR**: Automatically created with title, description, acceptance criteria, and branch.
+**Result**: PR + acceptance criteria + impacted files in 30 seconds.
 
 ---
 
-## Key Features
+## Architecture
+
+![Architecture Diagram](./architecture-diagram.jpg)
+
+**Flow**:
+- PM submits request via Slack
+- Postman AI Agents orchestrate the workflow
+- Ripgrep searches codebase
+- Snowflake Cortex AI generates PR content
+- GitHub receives PR/Issue
+- DigitalOcean hosts the deployment
+- Slack notifies team with results
+
+---
+
+## Current Features
 
 ### 1. Postman AI Agent Orchestration
 - **Autonomous workflow**: No manual loops or decision blocks
-- **Multi-API coordination**: Ripgrep, Claude, GitHub, Slack
+- **Multi-API coordination**: Ripgrep, Snowflake Cortex, GitHub, Slack
 - **Reasoning transparency**: Shows every decision step
-- **Flow Modules**: 6 reusable tools for clean architecture
+- **Flow Modules**: Reusable tools for clean architecture
 
-### 2. Intelligent Code Search
-- **Ripgrep API**: Fast code search with glob patterns
-- **New feature detection**: Handles both new features and existing code
-- **Context-aware**: Returns `is_new_feature` flag for smarter PR generation
+### 2. Intelligent Code Search (Ripgrep API)
+- **Fast code search**: Uses ripgrep with glob patterns
+- **New feature detection**: Handles both new features and existing code modifications
+- **Context-aware results**: Returns structured file information for AI analysis
 
-### 3. Smart Conflict Detection
-- **Checks open PRs**: Scans for file overlaps
-- **Risk scoring**: Calculates conflict percentage
-- **Proactive warnings**: Alerts team before conflicts happen
-- **Collaboration suggestions**: Links to conflicting PRs
+### 3. AI-Powered PR Generation (Snowflake Cortex)
+- **Natural language processing**: Understands vague PM requests
+- **Structured output**: Generates titles, descriptions, acceptance criteria
+- **Code-aware**: Tailors content based on impacted files
+- **PR size constraint**: Keeps PRs under 30 lines for easy review
 
-### 4. Clean Slack Integration
+### 4. GitHub Integration
+- **Issue creation**: Working end-to-end
+- **PR creation**: In development (placeholder commits)
+- **Automated branching**: Creates feature branches automatically
+
+### 5. Slack Integration
 - **Slash command**: `/impact "feature request"`
 - **Rich notifications**: Block Kit formatting with buttons
-- **Reasoning traces**: Shows AI's decision process
-- **One-click PR viewing**: Direct links to GitHub
+- **Reasoning traces**: Full transparency into AI decisions
+- **One-click navigation**: Direct links to GitHub
+
+### 6. Dashboard (Proof of Concept)
+- **PR history**: Track all generated PRs and issues
+- **Snowflake usage**: Monitor Cortex API usage and costs
+- **Analytics**: Workflow metrics and system health
+- **Visualization**: Reasoning traces and decision steps
 
 ---
 
 ## Tech Stack
 
-### Core Technologies
-
 **Postman Flows**
 - AI Agent Block (GPT-5 autonomous reasoning)
-- Flow Modules (6 reusable tools)
+- Flow Modules (reusable tools)
 - Actions (deployed with public URL)
 - Analytics (tool call logging)
 
-**APIs**
+**Backend APIs**
 - Ripgrep API (Node.js/Express code search)
-- Claude API (Sonnet 4.5 for PR generation)
-- GitHub REST API (PR creation)
+- FastAPI backend (Snowflake Cortex integration)
+- GitHub REST API (PR/issue creation)
 - Slack Webhooks (Block Kit notifications)
 
-**Dashboard** (Optional)
-- Next.js 16 + React 19 (App Router)
-- Express.js backend (analytics)
-- TailwindCSS (styling)
+**AI/LLM**
+- Snowflake Cortex (Arctic LLM for PR generation)
+- GPT-5 (Postman AI Agent orchestration)
+
+**Infrastructure**
+- DigitalOcean (deployment)
+- Next.js (dashboard - proof of concept)
 
 ---
 
@@ -138,141 +116,70 @@ Reasoning Trace:
 - Node.js 18+
 - GitHub Personal Access Token (`repo` scope)
 - Slack App with Incoming Webhook
-- Claude API Key
+- Snowflake account with Cortex access
 
-### 1. Setup Ripgrep API
+### Setup
 
-```bash
-cd ripgrep-api
-npm install
-cp .env.example .env
-# Edit .env: Set PORT=3001
-npm run dev
-```
+**Full setup instructions**: See `SETUP.md`
 
-Verify: `curl http://localhost:3001/api/health`
+**Quick start**:
 
-### 2. Import Postman Flow Modules
-
-1. Open Postman Desktop
-2. Import all modules from `postman/modules/`
-3. For each collection → Right-click → "Create Flow Module"
-
-### 3. Configure AI Agent
-
-1. Create new Flow: "PM-Copilot-Main"
-2. Add blocks: Start → AI Agent → Output
-3. In AI Agent:
-   - Add all 6 flow modules as tools
-   - Copy system prompt from `postman/AI-AGENT-CONFIGURATION.md`
-4. Configure environment variables:
-   ```
-   RIPGREP_API_URL = http://localhost:3001
-   CLAUDE_API_KEY = sk-ant-...
-   GITHUB_TOKEN = ghp_...
-   SLACK_WEBHOOK_PM = https://hooks.slack.com/services/...
-   REPO_OWNER = your-username
-   REPO_NAME = your-repo
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/V-prajit/relay.git
+   cd relay
    ```
 
-### 4. Deploy as Postman Action
+2. **Setup Ripgrep API**
+   ```bash
+   cd ripgrep-api
+   npm install && npm run dev
+   ```
 
-1. Click "Deploy" in your flow
-2. Enable "Public URL"
-3. Copy the Action URL
+3. **Setup Backend**
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   python -m uvicorn app.main:app --reload
+   ```
 
-### 5. Setup Slack
+4. **Configure Postman Flow**
+   - Import modules from `postman/modules/`
+   - Setup AI Agent with prompt from `postman/AI-AGENT-CONFIGURATION.md`
+   - Deploy as Action
 
-1. Create Slack App at https://api.slack.com/apps
-2. Enable **Slash Commands**:
-   - Command: `/impact`
-   - Request URL: Your Postman Action URL
-3. Enable **Incoming Webhooks**:
-   - Add webhook to your channel
-   - Copy webhook URL to Postman environment
-4. Install app to workspace
+5. **Setup Slack**
+   - Create slash command `/impact`
+   - Point to Postman Action URL
 
-### 6. Test
+6. **Test**
+   ```
+   /impact "Fix React version issue"
+   ```
 
-In Slack:
-```
-/impact "Add dark mode toggle to settings"
-```
-
-Watch the magic happen! ✨
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  PM in Slack: /impact "Add ProfileCard to /users"      │
-└────────────────────┬────────────────────────────────────┘
-                     │ POST webhook
-                     ▼
-         ┌───────────────────────────┐
-         │  Postman Action (Cloud)   │
-         │  • Public URL endpoint    │
-         └───────────┬───────────────┘
-                     │
-                     ▼
-         ┌───────────────────────────┐
-         │  AI Agent Block (GPT-5)   │
-         │  • Parse PM intent        │
-         │  • Orchestrate workflow   │
-         │  • Make decisions         │
-         └───────────┬───────────────┘
-                     │
-         ┌───────────┴──────────────────┬────────────┐
-         │                              │            │
-         ▼                              ▼            ▼
-    ┌─────────────┐            ┌───────────┐  ┌──────────┐
-    │ Ripgrep API │            │ GitHub    │  │ Claude   │
-    │ Find files  │            │ API       │  │ API      │
-    └──────┬──────┘            └─────┬─────┘  └────┬─────┘
-           │                         │             │
-           └─────────────┬───────────┴─────────────┘
-                         ▼
-              ┌──────────────────┐
-              │ Slack Webhook    │
-              │ Notify team      │
-              └──────────────────┘
-```
-
----
-
-## Why Postman Flows?
-
-### Multi-API Orchestration
-Single flow coordinates 4 different APIs seamlessly
-
-### AI Agent Autonomy
-No manual loops or decision blocks—AI decides workflow steps dynamically
-
-### Flow Modules
-Reusable tools promote clean, maintainable architecture
-
-### Public URL Deployment
-Actions make Slack integration trivial (one URL, done)
-
-### Built-in Analytics
-Full visibility into AI decisions for debugging and demos
+**Deployment**: Currently deployed on DigitalOcean. See `SETUP.md` for deployment instructions.
 
 ---
 
 ## Project Structure
 
 ```
-youareabsolutelyright/
+relay/
 ├── postman/
-│   ├── modules/              # 6 Flow Modules
+│   ├── modules/              # 6 Flow Modules (AI Agent tools)
 │   ├── AI-AGENT-CONFIGURATION.md
-│   └── collections/
-├── ripgrep-api/              # Code search (Node.js)
-├── dashboard-api/            # Analytics backend
-├── frontend/                 # Dashboard (Next.js)
-├── docs/                     # Guides and troubleshooting
+│   └── collections/          # API collections
+├── ripgrep-api/              # Code search API (Node.js)
+│   ├── src/
+│   └── package.json
+├── backend/                  # FastAPI backend (Snowflake integration)
+│   ├── app/
+│   │   ├── routes/          # API endpoints
+│   │   └── services/        # Business logic
+│   └── requirements.txt
+├── frontend/                 # Dashboard (Next.js - POC)
+├── docs/                     # Documentation and guides
+├── architecture-diagram.jpg  # System architecture
 ├── README.md                 # This file
 ├── CLAUDE.md                 # Developer instructions
 └── SETUP.md                  # Complete setup guide
@@ -280,63 +187,115 @@ youareabsolutelyright/
 
 ---
 
+## Future Implementations
+
+### Phase 1: Enhanced Search & Context
+
+**Elasticsearch Integration**
+- Advanced code indexing and semantic search
+- Faster search across large codebases
+- Historical code pattern analysis
+
+**OCR Integration**
+- Extract code from screenshots and design mockups
+- Increase context window for larger codebases
+- Support multiple file analysis in single request
+- Visual context compression for better AI understanding
+
+### Phase 2: Multi-Repository Support
+
+**Multiple Repositories**
+- Cross-repo dependency detection
+- Microservices architecture support
+- Unified PR creation across repos
+- Repository relationship mapping
+
+### Phase 3: Testing & CI/CD Integration
+
+**Test Environment Integration**
+- Automated test generation for PRs
+- Sandbox environment creation
+- Integration test execution
+- Test coverage reporting
+
+**CI/CD Pipeline Integration**
+- Auto-trigger builds on PR creation
+- Pre-merge validation
+- Automated deployment to staging
+- Rollback capabilities
+
+### Phase 4: Advanced Conflict Detection
+
+**Smart Conflict Analysis**
+- Co-change analysis (files that change together)
+- Historical conflict patterns
+- Calendar integration for engineer availability
+- Predictive conflict warnings
+
+### Phase 5: Project Management Integration
+
+**Asana/Jira Integration**
+- Auto-create tasks from feature requests
+- Link PRs to project milestones
+- Assign based on code ownership
+- Sync status updates
+
+### Phase 6: Improved User Experience
+
+**Postman Feature Request & Flow Feedback**
+- User feedback loop for generated PRs
+- Quality rating system
+- Iterative improvement based on feedback
+- Custom template support
+
+**Customizable Timing & Constraints**
+- Remove hardcoded time limits
+- Configurable PR size constraints
+- Custom validation rules
+- Team-specific workflows
+
+**Environment Variable UX Improvement**
+- Better variable management interface
+- Role-based access control
+- Prevent concurrent edits
+- Notification conflict resolution
+- Variable version history
+
+### Phase 7: Code Quality & Review
+
+**CodeRabbit AI Review Integration**
+- Automated code review on generated PRs
+- Security vulnerability scanning
+- Best practice recommendations
+- Automated fix suggestions
+
+**Multi-Model Routing**
+- GPT-5 for orchestration
+- Claude for code generation
+- Specialized models for different tasks
+- Cost optimization based on task complexity
+
+---
+
 ## Use Cases
 
 ### For PMs
-- **Faster iteration**: Feature request → PR in 30 seconds
+- **Faster iteration**: Feature request → Issue/PR automatically
 - **Better clarity**: Auto-generated acceptance criteria
-- **Full visibility**: Reasoning trace shows every step
+- **Full visibility**: Reasoning trace shows every decision
+- **Reduced back-and-forth**: Engineers get complete context upfront
 
 ### For Engineers
-- **Less clarification**: All context provided upfront
-- **Conflict awareness**: Know about PR overlaps before coding
-- **Ready to code**: Files identified, PR drafted, just implement
+- **Less clarification needed**: All context provided in issue/PR
+- **Conflict awareness**: Know about overlaps before coding
+- **Ready to implement**: Files identified, requirements clear
+- **Focus on coding**: Skip manual PR drafting
 
 ### For Teams
-- **Reduced friction**: Eliminate back-and-forth clarifications
+- **Reduced friction**: Eliminate lengthy clarification cycles
 - **Async friendly**: PM requests don't block engineers
 - **Audit trail**: Slack history + reasoning traces
-
----
-
-## Performance Metrics
-
-| Metric | Value |
-|--------|-------|
-| **End-to-End Time** | < 30 seconds |
-| **Manual Time Saved** | 75 minutes → 30 seconds |
-| **APIs Orchestrated** | 4 (Ripgrep, Claude, GitHub, Slack) |
-| **Conflict Detection** | Real-time (checks all open PRs) |
-| **PR Size Constraint** | ≤30 lines (keeps PRs reviewable) |
-
----
-
-## Demo for Hiring Managers
-
-### What This Demonstrates
-
-**1. Problem-Solving**
-- Identified real developer pain (PM→Engineer handoff)
-- Built practical, production-ready solution
-- Measurable impact (75 min → 30 sec)
-
-**2. Technical Execution**
-- Postman Flows orchestration
-- AI Agent autonomous reasoning
-- Multi-API integration
-- Clean architecture (Flow Modules)
-
-**3. Product Thinking**
-- User-focused (PM and Engineer personas)
-- Reasoning transparency (trust through visibility)
-- Async-friendly (Slack integration)
-- Scalable design (reusable modules)
-
-**Judge-Clickable Proof**:
-- ✅ Live Postman Action URL
-- ✅ Live Slack integration
-- ✅ GitHub repo with generated PRs
-- ✅ Postman Flows analytics (reasoning traces)
+- **Scalable process**: Handles multiple requests efficiently
 
 ---
 
@@ -350,8 +309,14 @@ cd ripgrep-api && npm run dev
 curl http://localhost:3001/api/health
 ```
 
+**Backend not responding**:
+```bash
+cd backend && python -m uvicorn app.main:app --reload
+curl http://localhost:8000/health
+```
+
 **Postman Flow errors**:
-- Check environment variables are set
+- Check environment variables are set correctly
 - Verify GitHub token has `repo` scope
 - Ensure Slack webhook URL is correct
 - See `docs/POSTMAN_FLOW_FIX_GUIDE.md`
@@ -359,32 +324,14 @@ curl http://localhost:3001/api/health
 **Slack command not working**:
 - Reinstall Slack app
 - Verify Request URL matches Postman Action URL
-- Check webhook is for correct channel
+- Check webhook points to correct channel
 
-**PR not created**:
-- Test GitHub token: `curl https://api.github.com/user -H "Authorization: Bearer {token}"`
-- Verify REPO_OWNER and REPO_NAME are correct
+**GitHub PR/Issue not created**:
+- Verify `GITHUB_TOKEN` is valid
+- Check repository name format: `owner/repo`
+- See `GITHUB_PR_FIX.md` for recent fixes
 
-See `CLAUDE.md` for comprehensive troubleshooting guide.
-
----
-
-## Future Enhancements
-
-**Phase 2: Advanced Conflict Detection**
-- Co-change analysis (files that change together)
-- Historical conflict patterns
-- Calendar + Slack Bot for engineer availability
-
-**Phase 3: Project Management**
-- Asana/Jira integration (auto-create tasks)
-- Assign PRs based on code ownership
-- Link PRs to project milestones
-
-**Phase 4: Enhanced AI**
-- Multi-model routing (GPT-5 + Claude)
-- CodeRabbit integration (automated code review)
-- Visual context compression for large diffs
+**Detailed troubleshooting**: See `CLAUDE.md` for comprehensive guide.
 
 ---
 
@@ -395,40 +342,29 @@ See `CLAUDE.md` for development guidelines.
 **Quick Guide**:
 1. Create new Flow Module for new API integrations
 2. Update AI Agent prompt to reference new tools
-3. Add error handling and documentation
-4. Test end-to-end via Slack
+3. Add error handling and comprehensive documentation
+4. Test end-to-end via Slack before committing
 
 ---
 
 ## Resources
 
 **Documentation**:
-- `SETUP.md` - Complete setup guide
-- `CLAUDE.md` - Developer instructions
+- `SETUP.md` - Complete setup and deployment guide
+- `CLAUDE.md` - Developer instructions and architecture
+- `GITHUB_PR_FIX.md` - Recent bug fixes and solutions
 - `postman/AI-AGENT-CONFIGURATION.md` - AI Agent configuration
-- `docs/` - Troubleshooting guides
+- `docs/` - Additional troubleshooting guides
 
-**Postman**:
+**Postman Resources**:
 - [AI Agent Block](https://learning.postman.com/docs/postman-flows/reference/blocks/ai-agent/)
 - [Flow Modules](https://learning.postman.com/docs/postman-flows/reference/modules/)
 - [Deploy Actions](https://learning.postman.com/docs/postman-flows/build-flows/actions/)
 
-**APIs**:
-- [Claude API](https://docs.claude.com/en/api/messages)
+**API Documentation**:
+- [Snowflake Cortex](https://docs.snowflake.com/en/user-guide/snowflake-cortex)
 - [GitHub REST API](https://docs.github.com/en/rest)
 - [Slack Block Kit](https://docs.slack.dev/block-kit/)
-
----
-
-## Hackathon Context
-
-This project was built for **Cal Hacks 12.0** (January 2025) and showcases:
-- Postman Flows AI Agent capabilities
-- Multi-API orchestration
-- Real-world developer tooling
-- Production-ready architecture
-
-**MLH Integration**: For the hackathon, we also built a Snowflake Cortex integration for cost-optimized PR generation and data warehousing. See `SNOWFLAKE_MLH.md` for details.
 
 ---
 
@@ -440,16 +376,14 @@ MIT License - See LICENSE file for details
 
 ## Contact
 
-**Team**: youareabsolutelyright
+**Team**: Relay
 
-**Demo**: https://youtu.be/your-video-here
+**GitHub**: https://github.com/V-prajit/relay
 
-**Postman Action**: [Live URL for judges to test]
-
-**GitHub**: https://github.com/V-prajit/youareabsolutelyright
+**Deployment**: Live on DigitalOcean
 
 ---
 
-**Built with ❤️ for Postman + Cal Hacks 12.0**
+**Built with Postman Flows + AI-powered automation**
 
-*From vague PM spec to production-ready PR in 30 seconds.*
+*Transforming vague PM specs into actionable engineering tasks.*
