@@ -12,7 +12,8 @@
       "Bash(ngrok config:*)",
       "Read(//Users/prajit/Desktop/projects/**)",
       "Bash(cd:*)",
-      "Read(//Users/shashank/Desktop/**)"
+      "Read(//Users/shashank/Desktop/**)",
+      "WebFetch(domain:learning.postman.com)"
     ],
     "deny": [],
     "ask": []
