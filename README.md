@@ -9,7 +9,7 @@ Transform vague PM specs into actionable GitHub PRs and issues through intellige
 Our project solves a real problem that we, SWE interns to PMs face: vague product requirements and incompatible interpretations. Engineers have to decode and figure out:
 
 - Clarifying requirements back and forth
-- Searching which files to change
+- Searching for which files to change
 - Writing acceptance criteria
 - Creating boring boilerplate PRs
 
@@ -24,7 +24,7 @@ This is how our Agent System works:
 3. **Ripgrep** finds relevant code files (Settings.tsx, theme.ts)
 4. **Snowflake Cortex AI** generates PR code (≤30 lines)
 5. **GitHub Issue** created automatically
-6. **Slack** notifies team with reasoning trace
+6. **Slack** notifies the team with the reasoning trace
 7. **Dashboard** shows history and the current usage of current PRs and Snowflake in general
 
 **Result**: Issue + acceptance criteria + impacted files in 30 seconds.
@@ -38,11 +38,11 @@ This is how our Agent System works:
 **Flow**:
 - PM submits request via Slack
 - Postman AI Agents orchestrate the workflow
-- Ripgrep searches codebase
+- Ripgrep searches the codebase
 - Snowflake Cortex AI generates PR content
-- GitHub receives PR/Issue
+- GitHub receives a PR/Issue
 - DigitalOcean hosts the deployment
-- Slack notifies team with results
+- Slack notifies the team with results
 
 ---
 
@@ -59,7 +59,7 @@ This is how our Agent System works:
 
 ## Tech Stack
 
-Note: Many of our tech stack choices were influenced by the generosity of free tier, since it was a hackathon project. We still kept it as scalable as possible!
+Note: Many of our tech stack choices were influenced by the generosity of the free tier, since it was a hackathon project. We still kept it as scalable as possible!
 
 **Postman Flows**
 - AI Agent Block (GPT-5 autonomous reasoning)
@@ -80,59 +80,6 @@ Note: Many of our tech stack choices were influenced by the generosity of free t
 **Infrastructure**
 - DigitalOcean (deployment)
 - Next.js (dashboard - proof of concept)
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Postman Desktop (v11.42.3+)
-- Node.js 18+
-- GitHub Personal Access Token (`repo` scope)
-- Slack App with Incoming Webhook
-- Snowflake account with Cortex access
-
-### Setup
-
-**Full setup instructions**: See `SETUP.md`
-
-**Quick start**:
-
-1. **Clone repository**
-   ```bash
-   git clone https://github.com/V-prajit/relay.git
-   cd relay
-   ```
-
-2. **Setup Ripgrep API**
-   ```bash
-   cd ripgrep-api
-   npm install && npm run dev
-   ```
-
-3. **Setup Backend**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   python -m uvicorn app.main:app --reload
-   ```
-
-4. **Configure Postman Flow**
-   - Import modules from `postman/modules/`
-   - Setup AI Agent with prompt from `postman/AI-AGENT-CONFIGURATION.md`
-   - Deploy as Action
-
-5. **Setup Slack**
-   - Create slash command `/impact`
-   - Point to Postman Action URL
-
-6. **Test**
-   ```
-   /impact "Fix React version issue"
-   ```
-
-**Deployment**: Currently deployed on DigitalOcean. See `SETUP.md` for deployment instructions.
 
 ---
 
@@ -214,7 +161,7 @@ relay/
 **Environment Variable Management**
 - Better variable management interface with bulk editing
 - Role-based access control for sensitive variables
-- Prevent concurrent edits with locking mechanism
+- Prevent concurrent edits with a locking mechanism
 - Conflict resolution notifications
 - Variable version history and rollback
 
@@ -279,16 +226,16 @@ curl http://localhost:8000/health
 - See `docs/POSTMAN_FLOW_FIX_GUIDE.md`
 
 **Slack command not working**:
-- Reinstall Slack app
+- Reinstall the Slack app
 - Verify Request URL matches Postman Action URL
-- Check webhook points to correct channel
+- Check webhook points to the correct channel
 
 **GitHub PR/Issue not created**:
 - Verify `GITHUB_TOKEN` is valid
 - Check repository name format: `owner/repo`
 - See `GITHUB_PR_FIX.md` for recent fixes
 
-**Detailed troubleshooting**: See `CLAUDE.md` for comprehensive guide.
+**Detailed troubleshooting**: See `CLAUDE.md` for a comprehensive guide.
 
 ---
 
@@ -297,8 +244,8 @@ curl http://localhost:8000/health
 See `CLAUDE.md` for development guidelines.
 
 **Quick Guide**:
-1. Create new Flow Module for new API integrations
-2. Update AI Agent prompt to reference new tools
+1. Create a new Flow Module for new API integrations
+2. Update the AI Agent prompt to reference new tools
 3. Add error handling and comprehensive documentation
 4. Test end-to-end via Slack before committing
 
