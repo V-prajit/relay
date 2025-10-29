@@ -404,6 +404,97 @@ async def get_analysis_history(
 
 # ==================== PR GENERATION (HYBRID AI) ====================
 
+@router.post("/generate-and-create-pr")
+async def generate_and_create_pr(request: GeneratePRRequest) -> Dict[str, Any]:
+    """
+    Generate PR content AND create actual GitHub PR in one call.
+
+    This is a convenience endpoint that combines:
+    1. /api/snowflake/generate-pr (generate content with Snowflake Cortex)
+    2. /api/github/create-pr (create actual PR on GitHub)
+
+    Example:
+    ```bash
+    curl -X POST http://localhost:8000/api/snowflake/generate-and-create-pr \\
+      -H "Content-Type: application/json" \\
+      -d '{
+        "feature_request": "Add dark mode toggle to settings",
+        "repo_name": "V-prajit/relay",
+        "impacted_files": [],
+        "is_new_feature": false
+      }'
+    ```
+
+    Returns:
+    ```json
+    {
+      "success": true,
+      "pr_title": "feat: Add dark mode toggle",
+      "pr_description": "...",
+      "branch_name": "pm-copilot/...",
+      "github_pr": {
+        "success": true,
+        "pr_url": "https://github.com/V-prajit/relay/pull/123",
+        "pr_number": 123
+      }
+    }
+    ```
+    """
+    from app.services.github_service import github_service
+
+    snowflake = SnowflakeService.get_instance()
+
+    if not snowflake.is_connected():
+        raise HTTPException(
+            status_code=503,
+            detail="Snowflake is not connected. Check ENABLE_SNOWFLAKE=true and credentials."
+        )
+
+    try:
+        # Step 1: Generate PR content with Snowflake Cortex
+        result = snowflake.generate_pr_with_cortex(
+            feature_request=request.feature_request,
+            impacted_files=request.impacted_files,
+            is_new_feature=request.is_new_feature,
+            repo_name=request.repo_name,
+            conflict_info=request.conflict_info
+        )
+
+        # Check if generation returned required fields
+        if not result or not result.get("pr_title") or not result.get("pr_description"):
+            error_msg = result.get('error', 'PR generation returned incomplete data')
+            raise HTTPException(
+                status_code=500,
+                detail=f"PR generation failed: {error_msg}"
+            )
+
+        # Step 2: Create actual GitHub PR
+        repo_url = f"https://github.com/{request.repo_name}"
+
+        github_result = github_service.create_pr(
+            repo_url=repo_url,
+            title=result["pr_title"],
+            description=result["pr_description"],
+            branch_name=result["branch_name"],
+            create_branch=True
+        )
+
+        # Combine results
+        return {
+            **result,  # Include all Snowflake generation data
+            "github_pr": github_result  # Add GitHub PR creation result
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in generate_and_create_pr: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate and create PR: {str(e)}"
+        )
+
+
 @router.post("/generate-pr")
 async def generate_pr(request: GeneratePRRequest) -> Dict[str, Any]:
     """

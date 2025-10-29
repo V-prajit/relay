@@ -10,7 +10,10 @@
       "Bash(lsof:*)",
       "WebSearch",
       "Bash(ngrok config:*)",
-      "Read(//Users/prajit/Desktop/projects/**)"
+      "Read(//Users/prajit/Desktop/projects/**)",
+      "Bash(cd:*)",
+      "Read(//Users/shashank/Desktop/**)",
+      "WebFetch(domain:learning.postman.com)"
     ],
     "deny": [],
     "ask": []

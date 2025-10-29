@@ -81,9 +81,6 @@ async def health_check() -> Dict[str, str]:
 
 
 # Import and include routers
-# Temporarily commented out - missing dependencies (fitz/PyMuPDF)
-# from app.routes import deepseek
-# app.include_router(deepseek.router, prefix="/api", tags=["deepseek-ocr"])
 
 # Snowflake routes
 try:
@@ -124,3 +121,13 @@ except ImportError as e:
     print(f"⚠ Ripgrep Proxy routes not loaded: {e}")
 except Exception as e:
     print(f"⚠ Error loading Ripgrep Proxy routes: {e}")
+
+# GitHub routes (for creating PRs and issues)
+try:
+    from app.routes import github
+    app.include_router(github.router, prefix="/api")
+    print("✓ GitHub routes loaded (PR creation enabled)")
+except ImportError as e:
+    print(f"⚠ GitHub routes not loaded: {e}")
+except Exception as e:
+    print(f"⚠ Error loading GitHub routes: {e}")
