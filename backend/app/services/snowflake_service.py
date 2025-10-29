@@ -244,9 +244,11 @@ class SnowflakeService:
 
     # ==================== CORTEX LLM FUNCTIONS ====================
 
-    def cortex_complete(self, prompt: str, model: str = "mistral-large") -> str:
+    def cortex_complete(self, prompt: str, model: str = "llama3.1-8b") -> str:
         """
         Use Cortex COMPLETE function for AI text generation.
+
+        Updated: Using llama3.1-8b for 3x faster inference.
 
         Args:
             prompt: Input prompt
@@ -465,7 +467,7 @@ class SnowflakeService:
         is_new_feature: bool,
         repo_name: str,
         conflict_info: Optional[str] = None,
-        model: str = "mistral-large"
+        model: str = "llama3.1-8b"
     ) -> Dict[str, Any]:
         """
         Generate PR content using Snowflake Cortex LLM.
