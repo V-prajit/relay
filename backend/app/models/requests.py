@@ -75,10 +75,10 @@ class CreatePRRequest(BaseModel):
         description="Name for the new branch",
         examples=["fix/auth-401-error"]
     )
-    patch_content: str = Field(
-        ...,
+    patch_content: Optional[str] = Field(
+        None,
         min_length=1,
-        description="Unified diff patch content",
+        description="Optional unified diff patch content (not used for PM Copilot PR creation)",
         examples=["diff --git a/auth.py b/auth.py\n..."]
     )
     title: str = Field(
