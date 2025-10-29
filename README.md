@@ -1,6 +1,6 @@
 # Relay
 
-**PM Copilot** - Transform vague PM specs into actionable GitHub PRs and issues through intelligent workflow automation.
+Transform vague PM specs into actionable GitHub PRs and issues through intelligent workflow automation.
 
 ---
 
@@ -23,11 +23,11 @@ This is how our Agent System works:
 2. **Postman AI Agent** processes the request
 3. **Ripgrep** finds relevant code files (Settings.tsx, theme.ts)
 4. **Snowflake Cortex AI** generates PR code (≤30 lines)
-5. **GitHub PR** created automatically
+5. **GitHub Issue** created automatically
 6. **Slack** notifies team with reasoning trace
 7. **Dashboard** shows history and the current usage of current PRs and Snowflake in general
 
-**Result**: PR + acceptance criteria + impacted files in 30 seconds.
+**Result**: Issue + acceptance criteria + impacted files in 30 seconds.
 
 ---
 
@@ -48,43 +48,18 @@ This is how our Agent System works:
 
 ## Current Features
 
-### 1. Postman AI Agent Orchestration
-- **Autonomous workflow**: No manual loops or decision blocks
-- **Multi-API coordination**: Ripgrep, Snowflake Cortex, GitHub, Slack
-- **Reasoning transparency**: Shows every decision step
-- **Flow Modules**: Reusable tools for clean architecture
-
-### 2. Intelligent Code Search (Ripgrep API)
-- **Fast code search**: Uses ripgrep with glob patterns
-- **New feature detection**: Handles both new features and existing code modifications
-- **Context-aware results**: Returns structured file information for AI analysis
-
-### 3. AI-Powered PR Generation (Snowflake Cortex)
-- **Natural language processing**: Understands vague PM requests
-- **Structured output**: Generates titles, descriptions, acceptance criteria
-- **Code-aware**: Tailors content based on impacted files
-- **PR size constraint**: Keeps PRs under 30 lines for easy review
-
-### 4. GitHub Integration
-- **Issue creation**: Working end-to-end
-- **PR creation**: In development (placeholder commits)
-- **Automated branching**: Creates feature branches automatically
-
-### 5. Slack Integration
-- **Slash command**: `/impact "feature request"`
-- **Rich notifications**: Block Kit formatting with buttons
-- **Reasoning traces**: Full transparency into AI decisions
-- **One-click navigation**: Direct links to GitHub
-
-### 6. Dashboard (Proof of Concept)
-- **PR history**: Track all generated PRs and issues
-- **Snowflake usage**: Monitor Cortex API usage and costs
-- **Analytics**: Workflow metrics and system health
-- **Visualization**: Reasoning traces and decision steps
+- **AI Agent Orchestration**: Autonomous workflow via Postman Flows with full reasoning transparency
+- **Intelligent Code Search**: Fast ripgrep-based search with new feature detection
+- **AI-Powered Generation**: Snowflake Cortex creates structured PRs with acceptance criteria (≤30 lines)
+- **GitHub Integration**: Automated issue creation and PR generation with branching
+- **Slack Interface**: `/relay` command with rich notifications and one-click navigation
+- **Analytics Dashboard**: PR history, Snowflake usage tracking, and workflow metrics (POC)
 
 ---
 
 ## Tech Stack
+
+Note: Many of our tech stack choices were influenced by the generosity of free tier, since it was a hackathon project. We still kept it as scalable as possible!
 
 **Postman Flows**
 - AI Agent Block (GPT-5 autonomous reasoning)
@@ -187,93 +162,75 @@ relay/
 
 ---
 
-## Future Implementations
+## Future Feature Implementations
 
-### Phase 1: Enhanced Search & Context
+**DeepSeek OCR Integration**
+- Context window expansion: 10x increase through optical compression technology
+- Token efficiency: Compress 10 text tokens into 1 visual token (97% OCR precision)
+- Large codebase support: Process entire repositories exceeding traditional LLM context limits
+- Screenshot & mockup extraction: Extract code from design files and documentation images
+- Structured document conversion and cost optimization through visual compression
 
 **Elasticsearch Integration**
 - Advanced code indexing and semantic search
 - Faster search across large codebases
 - Historical code pattern analysis
 
-**OCR Integration**
-- Extract code from screenshots and design mockups
-- Increase context window for larger codebases
-- Support multiple file analysis in single request
-- Visual context compression for better AI understanding
-
-### Phase 2: Multi-Repository Support
-
-**Multiple Repositories**
+**Multi-Repository Support**
 - Cross-repo dependency detection
-- Microservices architecture support
-- Unified PR creation across repos
+- Unified PR creation across multiple repositories
 - Repository relationship mapping
 
-### Phase 3: Testing & CI/CD Integration
-
-**Test Environment Integration**
+**Testing & CI/CD Integration**
 - Automated test generation for PRs
-- Sandbox environment creation
-- Integration test execution
-- Test coverage reporting
+- Sandbox environment creation and integration test execution
+- Auto-trigger builds on PR creation with pre-merge validation
+- Automated deployment to staging with rollback capabilities
 
-**CI/CD Pipeline Integration**
-- Auto-trigger builds on PR creation
-- Pre-merge validation
-- Automated deployment to staging
-- Rollback capabilities
-
-### Phase 4: Advanced Conflict Detection
-
-**Smart Conflict Analysis**
+**Advanced Conflict Detection**
 - Co-change analysis (files that change together)
-- Historical conflict patterns
+- Historical conflict patterns and predictive warnings
 - Calendar integration for engineer availability
-- Predictive conflict warnings
 
-### Phase 5: Project Management Integration
+**Project Management Integration**
+- Asana/Jira integration: Auto-create tasks from feature requests
+- Link PRs to project milestones and assign based on code ownership
+- Sync status updates across platforms
 
-**Asana/Jira Integration**
-- Auto-create tasks from feature requests
-- Link PRs to project milestones
-- Assign based on code ownership
-- Sync status updates
+---
 
-### Phase 6: Improved User Experience
+## Postman Flow Product Feedback
 
-**Postman Feature Request & Flow Feedback**
-- User feedback loop for generated PRs
-- Quality rating system
-- Iterative improvement based on feedback
-- Custom template support
+*These are feature requests and improvements we'd love to see in Postman Flows, based on our experience building this project.*
+
+### Flow User Experience Improvements
 
 **Customizable Timing & Constraints**
-- Remove hardcoded time limits
-- Configurable PR size constraints
-- Custom validation rules
-- Team-specific workflows
+- Remove hardcoded time limits for long-running flows
+- Configurable timeout settings per block
+- Custom validation rules for flow inputs
+- Team-specific workflow templates
 
-**Environment Variable UX Improvement**
-- Better variable management interface
-- Role-based access control
-- Prevent concurrent edits
-- Notification conflict resolution
-- Variable version history
+**Environment Variable Management**
+- Better variable management interface with bulk editing
+- Role-based access control for sensitive variables
+- Prevent concurrent edits with locking mechanism
+- Conflict resolution notifications
+- Variable version history and rollback
 
-### Phase 7: Code Quality & Review
+### Flow Quality & Feedback Systems
 
-**CodeRabbit AI Review Integration**
-- Automated code review on generated PRs
-- Security vulnerability scanning
-- Best practice recommendations
-- Automated fix suggestions
+**User Feedback Loop**
+- Built-in rating system for AI Agent outputs
+- Quality tracking across flow executions
+- Iterative improvement suggestions based on usage patterns
+- Custom template library with community sharing
 
-**Multi-Model Routing**
-- GPT-5 for orchestration
-- Claude for code generation
-- Specialized models for different tasks
+**Enhanced AI Agent Capabilities**
+- Multi-model routing support (GPT-5 for orchestration, Claude for code)
+- Specialized model selection per task type
 - Cost optimization based on task complexity
+- Token usage analytics and optimization suggestions
 
 ---
 
@@ -374,16 +331,19 @@ MIT License - See LICENSE file for details
 
 ---
 
-## Contact
+## Team
 
-**Team**: Relay
+**Shashank Yaji**
+[LinkedIn](https://www.linkedin.com/in/shashankyaji/)
+
+**Prajit Viswanadha**
+[LinkedIn](https://www.linkedin.com/in/prajit-viswanadha/)
+
+**Rabib Husain**
+[LinkedIn](https://www.linkedin.com/in/rabib-husain/)
+
+---
 
 **GitHub**: https://github.com/V-prajit/relay
 
 **Deployment**: Live on DigitalOcean
-
----
-
-**Built with Postman Flows + AI-powered automation**
-
-*Transforming vague PM specs into actionable engineering tasks.*
