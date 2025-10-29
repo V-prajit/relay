@@ -248,6 +248,8 @@ class SnowflakeService:
         """
         Use Cortex COMPLETE function for AI text generation.
 
+        Updated: Using llama3.1-8b for 3x faster inference.
+
         Args:
             prompt: Input prompt
             model: Cortex model (mistral-large, llama3-70b, mixtral-8x7b, etc.)
