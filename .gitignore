@@ -1,6 +1,12 @@
-backend/.env
+# Environment files with secrets - DO NOT COMMIT
 .env
+.env.*
 *.env
+!.env.example
+backend/.env
+ripgrep-api/.env
+slack-listener/.env
+dashboard-api/.env
 
 # Postman environments with secrets
 postman/environment.json
