@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import searchRouter from './routes/search.js';
+import { ensureRepoCloned, pullLatestChanges } from './services/git.js';
 
 // Get directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -70,9 +71,32 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`
+// Background sync interval (default: 5 minutes)
+const REPO_PULL_INTERVAL = parseInt(process.env.REPO_PULL_INTERVAL || '300000', 10);
+let syncIntervalId = null;
+
+// Start server with repo cloning
+async function startServer() {
+  try {
+    // Clone/update repository before starting server
+    console.log('\n╔════════════════════════════════════════════╗');
+    console.log('║     Initializing Repository Clone        ║');
+    console.log('╚════════════════════════════════════════════╝\n');
+
+    await ensureRepoCloned();
+
+    // Start background sync if interval is set
+    if (REPO_PULL_INTERVAL > 0) {
+      console.log(`\n🔄 Starting background sync (every ${REPO_PULL_INTERVAL / 1000}s)`);
+      syncIntervalId = setInterval(async () => {
+        console.log('\n🔄 Background sync triggered...');
+        await pullLatestChanges();
+      }, REPO_PULL_INTERVAL);
+    }
+
+    // Start the server
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`
 ╔════════════════════════════════════════════╗
 ║        Ripgrep API Server Running         ║
 ╠════════════════════════════════════════════╣
@@ -85,19 +109,33 @@ Available endpoints:
   → GET  /              - API information
   → GET  /api/health   - Health check
   → POST /api/search   - Code search
+  → POST /api/sync     - Manual repo sync
   → GET  /api/types    - Supported file types
 
 Press Ctrl+C to stop the server
-  `);
-});
+      `);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully...');
-  process.exit(0);
-});
+function shutdown() {
+  console.log('\n📴 Shutting down gracefully...');
 
-process.on('SIGINT', () => {
-  console.log('\nSIGINT received, shutting down gracefully...');
+  // Clear background sync interval
+  if (syncIntervalId) {
+    clearInterval(syncIntervalId);
+    console.log('✅ Stopped background sync');
+  }
+
   process.exit(0);
-});
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+// Start the server
+startServer();
