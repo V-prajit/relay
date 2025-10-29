@@ -608,17 +608,26 @@ ACCEPTANCE_CRITERIA:
                 self.logger.warning(f"Failed to store PR generation data: {e}")
 
             return {
+                "success": True,
                 "pr_title": pr_title.strip(),
                 "pr_description": full_description.strip(),
                 "branch_name": branch_name,
                 "generated_by": f"Snowflake Cortex ({model})",
                 "execution_time_ms": execution_time_ms,
-                "model": model
+                "model": model,
+                "hybrid_ai": {
+                    "orchestrator": "Postman AI Agent (GPT-5)",
+                    "generator": f"Snowflake Cortex ({model})",
+                    "architecture": "AI Agent orchestrates, Cortex executes"
+                }
             }
 
         except Exception as e:
             self.logger.error(f"Cortex PR generation failed: {e}")
-            raise Exception(f"Failed to generate PR with Cortex: {str(e)}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
 
     def _extract_section(self, text: str, start_marker: str, end_marker: Optional[str]) -> str:
         """Extract section between markers from Cortex response."""

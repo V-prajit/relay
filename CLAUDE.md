@@ -454,9 +454,9 @@ cd frontend && npm run dev
 - Assign based on code ownership
 
 **Phase 4: Enhanced AI**
-- DeepSeek-OCR: Visual context compression for large diffs
 - CodeRabbit: Automated AI code review on PRs
 - Multi-model routing: GPT-5 for orchestration, Claude for code
+- Advanced context analysis for complex PRs
 
 ---
 
