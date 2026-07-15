@@ -36,10 +36,10 @@ Built by a 3-person team in roughly 5 days. Git history stops October 29, 2025 (
 flowchart LR
     PM["PM / requester"] -->|"/relay <text>"| SlackApp["Slack workspace"]
 
-    SlackApp -->|"slash command webhook"| Action["Postman Action\n(deployed Flow: Request -> Evaluate -> Validate -> Fork)"]
+    SlackApp -->|"slash command webhook"| Action["Postman Action\n(deployed Flow - see note below on\nARCHITECTURE.md's documented design\nvs. the exported flow JSON)"]
     SlackApp -.->|"Socket Mode, local-dev alternative"| Listener["slack-listener\n(Node, @slack/bolt, no public URL needed)"]
 
-    Action -->|"202 Accepted (within 3s)"| SlackApp
+    Action -->|"immediate ack message\n(response_url, within 3s)"| SlackApp
     Action -->|"background module"| Ripgrep["Ripgrep API\n(Node/Express wrapping the ripgrep CLI)"]
     Listener --> Ripgrep
 
@@ -61,6 +61,8 @@ flowchart LR
 
 **Read this diagram carefully around the GitHub step** - see [Known limitations](#known-limitations) for why it's drawn as uncertain rather than a solid arrow.
 
+**A note on Evaluate/Validate/Fork:** `ARCHITECTURE.md` documents the Flow's design as `Request -> Evaluate -> Validate -> Fork`, with the Fork branch returning `202 Accepted` immediately. The committed `postman/flows/relay-command-flow.json` is a simpler linear variant - six blocks (`Webhook Start -> Acknowledge Slack -> RIPGREP API -> Snowflake Cortex -> Send Slack Notification -> Final Response`) with no `Evaluate`, `Validate`, or `Fork` block, and no `202` response anywhere in it. Its "immediate ack" is the `Acknowledge Slack` block, which POSTs a `"Processing..."` message to `{{start.response_url}}` before the rest of the chain runs; the flow's own HTTP response (`Final Response`) is a `200` that depends on the whole chain completing, not a forked early return. Treat the Evaluate/Validate/Fork/202 design below as the documented architecture, not something verified against this exported flow.
+
 ### Runtime flow (as implemented in `postman/flows/relay-command-flow.json`)
 
 ```mermaid
@@ -74,18 +76,19 @@ sequenceDiagram
 
     U->>S: /relay "fix mobile login"
     S->>F: POST form-encoded webhook
-    F->>S: 202 Accepted (Slack ack, must be <3s)
-    F->>F: Evaluate (flatten Slack's array-wrapped fields)
-    F->>F: Validate (require non-empty text)
-    F->>R: POST /api/search { query: text }
-    R-->>F: { files: [...], is_new_feature }
+    F->>S: Acknowledge Slack ("Processing...", must be <3s)
+    F->>B: POST /api/ripgrep/search { query: text } (backend proxy)
+    B->>R: proxied ripgrep search
+    R-->>B: { files: [...], is_new_feature }
+    B-->>F: { files: [...], is_new_feature }
     F->>B: POST /api/snowflake/generate-pr { feature_request, impacted_files }
     B-->>F: { pr_title, pr_description, branch_name }
     F->>S: Block Kit message (title, files impacted, branch, description)
+    F->>F: Final Response (200, depends on the full chain)
     F->>D: POST /api/webhook/flow-complete (execution record)
 ```
 
-Two things worth flagging about this sequence, both confirmed by reading the code rather than the docs:
+This sequence is drawn straight from the six blocks in `postman/flows/relay-command-flow.json` (no `Evaluate`/`Validate`/`Fork` - see the note above the previous diagram). Two things worth flagging, both confirmed by reading that flow JSON rather than `ARCHITECTURE.md`:
 
 - `ripgrep_search` in the flow calls `{{BACKEND_API_URL}}/api/ripgrep/search`, i.e. it goes through the FastAPI backend's proxy route (`backend/app/routes/ripgrep_proxy.py`), not directly to the Ripgrep API. The proxy exists specifically because ngrok in local development can only tunnel one port.
 - The flow's Slack notification links to the repo generally (a "View Repo" button), not to a specific issue/PR URL - consistent with this flow variant not calling GitHub directly.
@@ -94,8 +97,8 @@ Two things worth flagging about this sequence, both confirmed by reading the cod
 
 ## Key technical decisions
 
-- **Fork pattern for Slack's 3-second timeout.** The Postman Flow immediately returns `202 Accepted` on one branch while the search/generate/notify work runs in the background (Postman Actions allow up to 60 minutes of background execution). This is the same shape you'd use behind a serverless queue, done with a visual Flow instead of a Lambda + SQS setup.
-- **An `Evaluate` block flattens Slack's payload.** `application/x-www-form-urlencoded` from Slack wraps every field in a single-element array (`{"text": ["hello"]}`); a small TypeScript step normalizes this before validation.
+- **Immediate acknowledgment for Slack's 3-second timeout.** In the exported flow, `Acknowledge Slack` POSTs a `"Processing..."` message to `response_url` before the search/generate/notify chain runs, so Slack sees a response well inside its 3-second window while the rest of the work continues. `ARCHITECTURE.md` documents a more general Fork pattern (a `202 Accepted` branch returned in parallel with up to 60 minutes of background execution) as the intended design; the committed flow JSON implements the ack-then-chain version of that idea rather than a literal Fork block, so treat the Fork/`202` framing as documented design, not verified flow behavior.
+- **An `Evaluate` block flattens Slack's payload (documented design).** `ARCHITECTURE.md` describes `application/x-www-form-urlencoded` from Slack wrapping every field in a single-element array (`{"text": ["hello"]}`) and a TypeScript `Evaluate` step normalizing this before validation. This block isn't present in the exported `relay-command-flow.json`, so it's documented in `ARCHITECTURE.md` rather than confirmed in the committed flow.
 - **Two independent entry points.** A deployed Postman Action (public webhook, for the "production" path) and a `slack-listener` Socket Mode app (`@slack/bolt`, no public URL required) exist side by side - useful during development when you don't want to stand up a tunnel.
 - **Code search first, generation second.** Ripgrep runs before the LLM step so the generation prompt is grounded in files that actually exist in the target repo, and `is_new_feature` short-circuits the "which files" question when ripgrep finds nothing.
 - **Execution analytics live outside the Flow.** `dashboard-api` is a small Express service that appends flow-completion webhooks to a JSON file (explicitly an MVP choice - the `.env.example` says "can easily switch to PostgreSQL/MongoDB later") and serves aggregate stats/conflict data to a Next.js dashboard.
